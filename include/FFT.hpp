@@ -13,17 +13,17 @@ struct RFFT {
     using difference_type = vector_type::difference_type;
     int m_size {};
     int m_coef {m_size / 2 + 1};
-    vector_type m_flat{ size(), align_alloc<float>{} };
-    vector_type m_real{ coefficients(), align_alloc<float>{} };
-    vector_type m_imag{ coefficients(), align_alloc<float>{} };
+    vector_type m_flat{ size_type(size()), align_alloc<float>{} };
+    vector_type m_real{ size_type(coefficients()), align_alloc<float>{} };
+    vector_type m_imag{ size_type(coefficients()), align_alloc<float>{} };
     fftwf_plan  m_plan_r2c;
     fftwf_plan  m_plan_c2r;
     RFFT(int _size = 0);
    ~RFFT();
     RFFT(RFFT && ) noexcept = default;
     RFFT &operator=( RFFT && ) noexcept = default;
-    size_type size() const;
-    size_type coefficients() const;
+    int size() const;
+    int coefficients() const;
     template<class I, class O>
     void forward(O rdst,O idst, I src)
     {
@@ -56,17 +56,17 @@ struct FFT {
     using difference_type = vector_type::difference_type;
 
     int m_size {};
-    vector_type m_rsrc{ size(), align_alloc<float>{}};
-    vector_type m_isrc{ size(), align_alloc<float>{}};
-    vector_type m_rdst{ size(), align_alloc<float>{}};
-    vector_type m_idst{ size(), align_alloc<float>{}};
+    vector_type m_rsrc{ size_type(size()), align_alloc<float>{}};
+    vector_type m_isrc{ size_type(size()), align_alloc<float>{}};
+    vector_type m_rdst{ size_type(size()), align_alloc<float>{}};
+    vector_type m_idst{ size_type(size()), align_alloc<float>{}};
     fftwf_plan          m_plan;
     FFT(int _size = 0);
    ~FFT();
     FFT(FFT && ) noexcept = default;
     FFT &operator=( FFT && ) noexcept = default;
-    size_type size() const;
-    size_type coefficients() const;
+    int size() const;
+    int coefficients() const;
     template<class I, class O>
     void forward(O rdst, O idst, I rsrc, I isrc)
     {

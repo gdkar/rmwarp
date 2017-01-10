@@ -1,10 +1,11 @@
 set( rmwarp_SOURCES FFT.cpp
                     ReassignedFFT.cpp )
-set( rmwarp_HEADERS FFT.hpp
-                    Simd.hpp
-                    Math.hpp
-                    ReassignedSpectrum.hpp
-                    ReassignedFFT.hpp
+
+set( rmwarp_HEADERS ../include/FFT.hpp
+                    ../include/Simd.hpp
+                    ../include/Math.hpp
+                    ../include/ReassignedSpectrum.hpp
+                    ../include/ReassignedFFT.hpp
                     TimeWeightedWindow.hpp
                     TimeDerivativeWindow.hpp )
 

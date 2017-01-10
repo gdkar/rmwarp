@@ -13,33 +13,33 @@ struct RMSpectrum {
     int m_size;
     int m_coef{m_size / 2 + 1};
     int m_spacing{ (m_coef + 15) & ~15};
-    vector_type X { spacing() * 2, align_alloc<float>{}};
+    vector_type X { size_type(spacing()) * 2, align_alloc<float>{}};
 
-    vector_type X_mag{spacing(), align_alloc<float>{}};
-    vector_type X_phase{spacing(),align_alloc<float>{}};
+    vector_type X_mag{size_type(spacing()), align_alloc<float>{}};
+    vector_type X_phase{size_type(spacing()),align_alloc<float>{}};
 
-    vector_type dM_dw  { spacing(), align_alloc<float>{}};
-    vector_type dPhi_dw{ spacing(), align_alloc<float>{} };
+    vector_type dM_dw  { size_type(spacing()), align_alloc<float>{}};
+    vector_type dPhi_dw{ size_type(spacing()), align_alloc<float>{} };
 
-    vector_type dM_dt  { spacing(), align_alloc<float>{} };
-    vector_type dPhi_dt{ spacing(), align_alloc<float>{} };
+    vector_type dM_dt  { size_type(spacing()), align_alloc<float>{} };
+    vector_type dPhi_dt{ size_type(spacing()), align_alloc<float>{} };
 
-    vector_type d2Phi_dtdw{spacing(), align_alloc<float>{} };
+    vector_type d2Phi_dtdw{size_type(spacing()), align_alloc<float>{} };
 
     RMSpectrum(int _size = 0) : m_size{_size} {}
     RMSpectrum(RMSpectrum && ) noexcept = default;
     RMSpectrum & operator = (RMSpectrum && ) noexcept = default;
     RMSpectrum(const RMSpectrum &) = default;
     RMSpectrum&operator=(const RMSpectrum &) = default;
-    size_type size() const
+    int size() const
     {
         return m_size;
     }
-    size_type coefficients() const
+    int coefficients() const
     {
         return m_coef;
     }
-    size_type spacing() const
+    int spacing() const
     {
         m_spacing;
     }

@@ -17,18 +17,18 @@ struct RMFFT {
     int m_coef{m_size / 2 + 1}; /// <- number of non-redundant forier coefficients
     int m_spacing{ (m_coef + 15) & ~15}; /// <- padded number of coefficients to play nicely wiht simd when packing split-complex format into small contigous arrays.
 
-    vector_type m_h  {size(), align_alloc<float>{}};  /// <- transform window
-    vector_type m_Dh {size(), align_alloc<float>{}};  /// <- time derivative of window
-    vector_type m_Th {size(), align_alloc<float>{}};  /// <- time multiplied window
-    vector_type m_TDh{size(), align_alloc<float>{}};  /// <- time multiplied time derivative window;
+    vector_type m_h  {size_type(size()), align_alloc<float>{}};  /// <- transform window
+    vector_type m_Dh {size_type(size()), align_alloc<float>{}};  /// <- time derivative of window
+    vector_type m_Th {size_type(size()), align_alloc<float>{}};  /// <- time multiplied window
+    vector_type m_TDh{size_type(size()), align_alloc<float>{}};  /// <- time multiplied time derivative window;
 
-    vector_type m_flat{size(), align_alloc<float>{}}; /// <- input windowing scratch space.
-    vector_type m_split{spacing() * 2, align_alloc<float>{}}; /// <- frequency domain scratch space.
+    vector_type m_flat{size_type(size()), align_alloc<float>{}}; /// <- input windowing scratch space.
+    vector_type m_split{size_type(spacing()) * 2, align_alloc<float>{}}; /// <- frequency domain scratch space.
 
-    vector_type m_X    {spacing() * 2, align_alloc<float>{}}; /// <- transform of windowed signal
-    vector_type m_X_Dh {spacing() * 2, align_alloc<float>{}}; /// <- transform of time derivative windowed signal
-    vector_type m_X_Th {spacing() * 2, align_alloc<float>{}}; /// <- transform of time multiplied window
-    vector_type m_X_TDh{spacing() * 2, align_alloc<float>{}}; /// <- transform of time multiplied time derivative window.
+    vector_type m_X    {size_type(spacing()) * 2, align_alloc<float>{}}; /// <- transform of windowed signal
+    vector_type m_X_Dh {size_type(spacing()) * 2, align_alloc<float>{}}; /// <- transform of time derivative windowed signal
+    vector_type m_X_Th {size_type(spacing()) * 2, align_alloc<float>{}}; /// <- transform of time multiplied window
+    vector_type m_X_TDh{size_type(spacing()) * 2, align_alloc<float>{}}; /// <- transform of time multiplied time derivative window.
 
     fftwf_plan          m_plan_r2c{0};  /// <- real to complex plan;
     fftwf_plan          m_plan_c2r{0};  /// <0 complex to real plan.
@@ -63,8 +63,8 @@ struct RMFFT {
     }
    ~RMFFT();
     void process( const float *const src, RMSpectrum & dst);
-    size_type spacing() const;
-    size_type size() const;
-    size_type coefficients() const;
+    int spacing() const;
+    int size() const;
+    int coefficients() const;
 };
 }

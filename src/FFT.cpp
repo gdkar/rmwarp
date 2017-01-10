@@ -2,11 +2,11 @@
 
 using namespace RMWarp;
 
-RFFT::size_type RFFT::size() const
+int RFFT::size() const
 {
     return m_size;
 }
-RFFT::size_type RFFT::coefficients() const
+int RFFT::coefficients() const
 {
     return m_coef;
 }
@@ -48,11 +48,11 @@ FFT::~FFT()
 {
     fftwf_destroy_plan(m_plan);
 }
-FFT::size_type FFT::size() const
+int FFT::size() const
 {
     return m_size;
 }
-FFT::size_type FFT::coefficients() const
+int FFT::coefficients() const
 {
     return m_size;
 }

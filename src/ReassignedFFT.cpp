@@ -79,15 +79,15 @@ void RMFFT::process( const float *const src, RMSpectrum & dst)
         bs::store(_TDh_over_X - _Th_Dh_over_XX,&dst.d2Phi_dtdw[0] + i);
     }
 }
-RMFFT::size_type RMFFT::spacing() const
+int RMFFT::spacing() const
 {
     return m_spacing;
 }
-RMFFT::size_type RMFFT::size() const
+int RMFFT::size() const
 {
     return m_size;
 }
-RMFFT::size_type RMFFT::coefficients() const
+int RMFFT::coefficients() const
 {
     return m_coef;
 }
