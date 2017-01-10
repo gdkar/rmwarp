@@ -22,7 +22,7 @@ RMFFT::~RMFFT()
     }
 }
 
-void RMFFT::process( const float *const src, RMSpectrum & dst)
+void RMFFT::process( const float *const src, RMSpectrum & dst, int64_t _when )
 {
     using reg = simd_reg<float>;
     constexpr auto w = int(simd_width<float>);
@@ -51,7 +51,7 @@ void RMFFT::process( const float *const src, RMSpectrum & dst)
         auto n = bs::rec(bs::sqr(r) + bs::sqr(i) + bs::Eps<float>());
         return std::make_pair(r * n , -i * n);
     };
-    dst.resize(m_size);
+    dst.reset(m_size, _when);
     std::copy(_real, _real + m_coef, dst.X.begin());
     std::copy(_imag, _imag + m_coef, dst.X.begin() + m_spacing);
 

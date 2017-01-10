@@ -5,14 +5,16 @@
 
 namespace RMWarp {
 
-struct RMSpectrum {
+class RMSpectrum {
+    int m_size;
+    int m_coef{m_size / 2 + 1};
+    int m_spacing{ (m_coef + 15) & ~15};
+    int64_t m_when{0};
+public:
     using vector_type = align_vector<float>;
     using size_type = vector_type::size_type;
     using difference_type = vector_type::difference_type;
 
-    int m_size;
-    int m_coef{m_size / 2 + 1};
-    int m_spacing{ (m_coef + 15) & ~15};
     vector_type X { size_type(spacing()) * 2, align_alloc<float>{}};
 
     vector_type X_mag{size_type(spacing()), align_alloc<float>{}};
@@ -43,6 +45,14 @@ struct RMSpectrum {
     {
         m_spacing;
     }
+    int64_t when() const
+    {
+        return m_when;
+    }
+    void set_when(int64_t _when)
+    {
+        m_when = _when;
+    }
     void resize(int _size)
     {
         if(_size == size())
@@ -55,6 +65,11 @@ struct RMSpectrum {
         X_phase.resize(m_spacing);
         for(auto p : { &dM_dw, &dPhi_dw, &dM_dt, &dPhi_dt, &d2Phi_dtdw} )
             p->resize(m_spacing);
+    }
+    void reset(int _size, int64_t _when)
+    {
+        resize(_size);
+        set_when(_when);
     }
 };
 }

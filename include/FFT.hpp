@@ -7,17 +7,20 @@
 
 namespace RMWarp {
 
-struct RFFT {
+class RFFT {
+public:
     using vector_type = align_vector<float>;
     using size_type = vector_type::size_type;
     using difference_type = vector_type::difference_type;
-    int m_size {};
-    int m_coef {m_size / 2 + 1};
+protected:
+    int m_size;
+    int m_coef{m_size/2 + 1};
     vector_type m_flat{ size_type(size()), align_alloc<float>{} };
     vector_type m_real{ size_type(coefficients()), align_alloc<float>{} };
     vector_type m_imag{ size_type(coefficients()), align_alloc<float>{} };
     fftwf_plan  m_plan_r2c;
     fftwf_plan  m_plan_c2r;
+public:
     RFFT(int _size = 0);
    ~RFFT();
     RFFT(RFFT && ) noexcept = default;
@@ -50,17 +53,19 @@ struct RFFT {
         std::transform(m_flat.cbegin(),m_flat.cend(),dst,[scale](auto x){return x * scale;});
     }
 };
-struct FFT {
+class FFT {
+public:
     using vector_type = align_vector<float>;
     using size_type = vector_type::size_type;
     using difference_type = vector_type::difference_type;
-
+protected:
     int m_size {};
     vector_type m_rsrc{ size_type(size()), align_alloc<float>{}};
     vector_type m_isrc{ size_type(size()), align_alloc<float>{}};
     vector_type m_rdst{ size_type(size()), align_alloc<float>{}};
     vector_type m_idst{ size_type(size()), align_alloc<float>{}};
     fftwf_plan          m_plan;
+public:
     FFT(int _size = 0);
    ~FFT();
     FFT(FFT && ) noexcept = default;

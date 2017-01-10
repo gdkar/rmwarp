@@ -8,14 +8,17 @@
 #include "ReassignedSpectrum.hpp"
 namespace RMWarp {
 
-struct RMFFT {
+class RMFFT {
+public:
     using vector_type = align_vector<float>;
     using size_type = vector_type::size_type;
     using difference_type = vector_type::difference_type;
-
+protected:
     int m_size{}; /// <- transform size
     int m_coef{m_size / 2 + 1}; /// <- number of non-redundant forier coefficients
     int m_spacing{ (m_coef + 15) & ~15}; /// <- padded number of coefficients to play nicely wiht simd when packing split-complex format into small contigous arrays.
+
+
 
     vector_type m_h  {size_type(size()), align_alloc<float>{}};  /// <- transform window
     vector_type m_Dh {size_type(size()), align_alloc<float>{}};  /// <- time derivative of window
@@ -32,6 +35,7 @@ struct RMFFT {
 
     fftwf_plan          m_plan_r2c{0};  /// <- real to complex plan;
     fftwf_plan          m_plan_c2r{0};  /// <0 complex to real plan.
+public:
     RMFFT() = default;
     RMFFT ( RMFFT && ) noexcept = default;
     RMFFT &operator = ( RMFFT && ) noexcept = default;
@@ -62,7 +66,7 @@ struct RMFFT {
         setWindow(wbegin,wend);
     }
    ~RMFFT();
-    void process( const float *const src, RMSpectrum & dst);
+    void process( const float *const src, RMSpectrum & dst, int64_t when = 0);
     int spacing() const;
     int size() const;
     int coefficients() const;
