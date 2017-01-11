@@ -58,8 +58,8 @@ void RMFFT::process( const float *const src, RMSpectrum & dst, int64_t _when )
     for(auto i = 0; i < m_coef; i += w ) {
         auto _X_r = reg(_real + i), _X_i = reg(_imag + i);
 
-        bs::store(bs::hypot(_X_i,_X_r), &dst.X_mag[0] + i);
-        bs::store(bs::atan2(_X_i,_X_r), &dst.X_phase[0] + i);
+        bs::store(bs::log(bs::sqr(_X_i)+bs::sqr(_X_r)) * 0.5f, &dst.X_log[0] + i);
+        bs::store(bs::atan2(_X_i,_X_r), &dst.X_log[m_spacing] + i);
 
         std::tie(_X_r, _X_i) = _cinv(_X_r,_X_i);
 

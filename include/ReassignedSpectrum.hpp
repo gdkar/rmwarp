@@ -16,9 +16,7 @@ public:
     using difference_type = vector_type::difference_type;
 
     vector_type X { size_type(spacing()) * 2, align_alloc<float>{}};
-
-    vector_type X_mag{size_type(spacing()), align_alloc<float>{}};
-    vector_type X_phase{size_type(spacing()),align_alloc<float>{}};
+    vector_type X_log{size_type(spacing()) * 2 , align_alloc<float>{}};
 
     vector_type dM_dw  { size_type(spacing()), align_alloc<float>{}};
     vector_type dPhi_dw{ size_type(spacing()), align_alloc<float>{} };
@@ -61,8 +59,7 @@ public:
         m_coef = m_size / 2 + 1;
         m_spacing = (m_coef + 15) & ~15;
         X.resize(m_spacing * 2);
-        X_mag.resize(m_spacing);
-        X_phase.resize(m_spacing);
+        X_log.resize(m_spacing * 2);
         for(auto p : { &dM_dw, &dPhi_dw, &dM_dt, &dPhi_dt, &d2Phi_dtdw} )
             p->resize(m_spacing);
     }
