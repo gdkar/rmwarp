@@ -9,7 +9,7 @@ namespace RMWarp {
 
 class RFFT {
 public:
-    using vector_type = align_vector<float>;
+    using vector_type = simd_vec<float>;
     using size_type = vector_type::size_type;
     using difference_type = vector_type::difference_type;
 protected:
@@ -55,7 +55,7 @@ public:
 };
 class FFT {
 public:
-    using vector_type = align_vector<float>;
+    using vector_type = simd_vec<float>;
     using size_type = vector_type::size_type;
     using difference_type = vector_type::difference_type;
 protected:

@@ -22,7 +22,7 @@ RMFFT::~RMFFT()
     }
 }
 
-void RMFFT::process( const float *const src, RMSpectrum & dst, int64_t _when )
+void RMFFT::_finish_process( RMSpectrum & dst, int64_t _when )
 {
     using reg = simd_reg<float>;
     constexpr auto w = int(simd_width<float>);
@@ -31,16 +31,6 @@ void RMFFT::process( const float *const src, RMSpectrum & dst, int64_t _when )
         ,_real_Dh = &m_X_Dh[0], _imag_Dh = &m_X_Dh[m_spacing]
         ,_real_Th = &m_X_Th[0], _imag_Th = &m_X_Th[m_spacing]
         ,_real_TDh = &m_X_TDh[0], _imag_TDh = &m_X_TDh[m_spacing];
-    {
-        auto do_window = [&](auto w, auto d_r, auto d_i) {
-            bs::transform(src, src + m_size, &w[0], &m_flat[0],bs::multiplies);
-            fftwf_execute_split_dft_r2c(m_plan_r2c, &m_flat[0], d_r, d_i);
-        };
-        do_window(m_h , _real   , _imag);
-        do_window(m_Dh, _real_Dh, _imag_Dh);
-        do_window(m_Th, _real_Th, _imag_Th);
-        do_window(m_TDh,_real_TDh,_imag_TDh);
-    }
     auto _cmul = [](auto r0, auto i0, auto r1, auto i1) {
         return std::make_pair(r0 * r1 - i0 * i1, r0 * i1 + r1 * i0);
     };
@@ -52,20 +42,20 @@ void RMFFT::process( const float *const src, RMSpectrum & dst, int64_t _when )
         return std::make_pair(r * n , -i * n);
     };
     dst.reset(m_size, _when);
-    std::copy(_real, _real + m_coef, dst.X.begin());
-    std::copy(_imag, _imag + m_coef, dst.X.begin() + m_spacing);
+    std::copy(_real, _real + m_coef, dst.X_real());
+    std::copy(_imag, _imag + m_coef, dst.X_imag());
 
     for(auto i = 0; i < m_coef; i += w ) {
         auto _X_r = reg(_real + i), _X_i = reg(_imag + i);
 
-        bs::store(bs::log(bs::sqr(_X_i)+bs::sqr(_X_r)) * 0.5f, &dst.X_log[0] + i);
-        bs::store(bs::atan2(_X_i,_X_r), &dst.X_log[m_spacing] + i);
+        bs::store(bs::log(bs::sqr(_X_i)+bs::sqr(_X_r)) * 0.5f, dst.M_data());
+        bs::store(bs::atan2(_X_i,_X_r), dst.Phi_data());
 
         std::tie(_X_r, _X_i) = _cinv(_X_r,_X_i);
 
         auto _Dh_over_X = _cmul( reg(_real_Dh + i),reg(_imag_Dh + i) ,_X_r, _X_i );
 
-        bs::store(std::get<0>(_Dh_over_X),  &dst.dM_dt  [0] + i);
+        bs::store(std::get<0>(_Dh_over_X), &dst.dM_dt  [0] + i);
         bs::store(std::get<1>(_Dh_over_X), &dst.dPhi_dt[0] + i);
 
         auto _Th_over_X = _cmul( reg(_real_Th + i),reg(_imag_Th + i) ,_X_r, _X_i );

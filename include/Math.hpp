@@ -22,15 +22,31 @@ template<class T> constexpr const T T_PI_2 = T{0.5*M_PI};
 template<class T>
 constexpr T princarg(T a) { return bs::rem(a, T_TWO_PI<T>);}
 
-template<typename T>
-constexpr T roundup ( T x )
+template<class T>
+constexpr int ilog2(T t)
 {
-  x--;x|=x>>1;x|=x>>2;x|=x>>4;
-  x|=(x>>((sizeof(x)>1)?8:0));
-  x|=(x>>((sizeof(x)>2)?16:0));
-  x|=(x>>((sizeof(x)>4)?32:0));
-  return x+1;
+    return 64 - __builtin_clzl(uint64_t(t) - 1);
 }
+template<>
+constexpr int ilog2(uint32_t t) { return 32 - __builtin_clz(t-1u); }
+template<>
+constexpr int ilog2(uint64_t t) { return 64 - __builtin_clzl(t-1u); }
+template<>
+constexpr int ilog2(uint16_t t) { return ilog2(uint32_t(t)); }
+template<>
+constexpr int ilog2(uint8_t t)  { return ilog2(uint32_t(t)); }
+template<>
+constexpr int ilog2(int32_t t)  { return 32 - __builtin_clz(t-1u); }
+template<>
+constexpr int ilog2(int64_t t)  { return 64 - __builtin_clzl(t-1u); }
+template<>
+constexpr int ilog2(int16_t t)  { return ilog2(uint32_t(t)); }
+template<>
+constexpr int ilog2(int8_t t)   { return ilog2(int32_t(t)); }
+
+template<typename T>
+T roundup ( T x) { return T{1} << ilog2(x); }
+
 template<class T, class Compare>
 constexpr const T& clamp( const T& v, const T& lo, const T& hi, Compare && comp)
 {

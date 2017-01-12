@@ -96,15 +96,16 @@ namespace RMWarp {
 namespace bs = boost::simd;
 namespace ba = boost::alignment;
 
+template<class T>
+using align_alloc = bs::allocator<T>;
+
 template<class T = float>
 using simd_reg = bs::pack<T>;
 
 template<class T = float>
-using simd_vec = std::vector<
-    T
-  , ba::aligned_allocator<
-        T , simd_reg<T>::alignment >
-    >;
+using simd_vec = std::vector<T , align_alloc<T> >;
+//        T , simd_reg<T>::alignment >
+//    >;
 
 template<class T = float>
 constexpr size_t simd_width = bs::cardinal_of<simd_reg<T> >();
@@ -114,10 +115,8 @@ constexpr auto simd_alignment = simd_reg<T>::alignment;
 
 constexpr auto default_alignment = simd_alignment<float>;
 
-template<class T>
-using align_alloc = bs::allocator<T>;
 
-template<class T>
-using align_vector = std::vector<T, align_alloc<T> >;
+//template<class T>
+//using simd_vec = std::vector<T, align_alloc<T> >;
 
 }

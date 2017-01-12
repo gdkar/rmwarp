@@ -10,7 +10,7 @@ namespace RMWarp {
 
 class RMFFT {
 public:
-    using vector_type = align_vector<float>;
+    using vector_type = simd_vec<float>;
     using size_type = vector_type::size_type;
     using difference_type = vector_type::difference_type;
 protected:
@@ -35,6 +35,7 @@ protected:
 
     fftwf_plan          m_plan_r2c{0};  /// <- real to complex plan;
     fftwf_plan          m_plan_c2r{0};  /// <0 complex to real plan.
+    void _finish_process(RMSpectrum & dst, int64_t _when);
 public:
     RMFFT() = default;
     RMFFT ( RMFFT && ) noexcept = default;
@@ -66,7 +67,21 @@ public:
         setWindow(wbegin,wend);
     }
    ~RMFFT();
-    void process( const float *const src, RMSpectrum & dst, int64_t when = 0);
+    template<class It>
+    void process( It src, RMSpectrum & dst, int64_t when = 0)
+    {
+        {
+            auto do_window = [&](auto w, auto &v) {
+                bs::transform(src, src + m_size, &w[0], &m_flat[0],bs::multiplies);
+                fftwf_execute_split_dft_r2c(m_plan_r2c, &m_flat[0], &v[0], &v[m_spacing]);
+            };
+            do_window(m_h , m_X    );
+            do_window(m_Dh, m_X_Dh );
+            do_window(m_Th, m_X_Th );
+            do_window(m_TDh,m_X_TDh);
+        }
+        _finish_process(dst,when);
+    }
     int spacing() const;
     int size() const;
     int coefficients() const;

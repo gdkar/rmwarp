@@ -7,8 +7,8 @@ template<class InputIt, class OutputIt>
 OutputIt time_derivative_window(InputIt wbegin, InputIt wend, OutputIt dst)
 {
     auto n = int(std::distance(wbegin,wend));
-    auto time_r = align_vector<float>(wbegin,wend), time_i = align_vector<float>(n)
-      ,  freq_r = align_vector<float>(n), freq_i = align_vector<float>(n);
+    auto time_r = simd_vec<float>(wbegin,wend), time_i = simd_vec<float>(n)
+      ,  freq_r = simd_vec<float>(n), freq_i = simd_vec<float>(n);
     auto fft = FFT{n};
     fft.forward(freq_r.begin(),freq_i.begin(),time_r.begin(),time_i.begin());
     {
