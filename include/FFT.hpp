@@ -15,9 +15,9 @@ public:
 protected:
     int m_size;
     int m_coef{m_size/2 + 1};
-    vector_type m_flat{ size_type(size()), align_alloc<float>{} };
-    vector_type m_real{ size_type(coefficients()), align_alloc<float>{} };
-    vector_type m_imag{ size_type(coefficients()), align_alloc<float>{} };
+    vector_type m_flat{ size_type(size()), bs::allocator<float>{} };
+    vector_type m_real{ size_type(coefficients()), bs::allocator<float>{} };
+    vector_type m_imag{ size_type(coefficients()), bs::allocator<float>{} };
     fftwf_plan  m_plan_r2c;
     fftwf_plan  m_plan_c2r;
 public:
@@ -60,10 +60,10 @@ public:
     using difference_type = vector_type::difference_type;
 protected:
     int m_size {};
-    vector_type m_rsrc{ size_type(size()), align_alloc<float>{}};
-    vector_type m_isrc{ size_type(size()), align_alloc<float>{}};
-    vector_type m_rdst{ size_type(size()), align_alloc<float>{}};
-    vector_type m_idst{ size_type(size()), align_alloc<float>{}};
+    vector_type m_rsrc{ size_type(size()), bs::allocator<float>{}};
+    vector_type m_isrc{ size_type(size()), bs::allocator<float>{}};
+    vector_type m_rdst{ size_type(size()), bs::allocator<float>{}};
+    vector_type m_idst{ size_type(size()), bs::allocator<float>{}};
     fftwf_plan          m_plan;
 public:
     FFT(int _size = 0);

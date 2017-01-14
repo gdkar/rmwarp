@@ -97,15 +97,13 @@ namespace bs = boost::simd;
 namespace ba = boost::alignment;
 
 template<class T>
-using align_alloc = bs::allocator<T>;
+using aligned_ptr = std::unique_ptr<T,bs::aligned_delete>;
 
 template<class T = float>
 using simd_reg = bs::pack<T>;
 
 template<class T = float>
-using simd_vec = std::vector<T , align_alloc<T> >;
-//        T , simd_reg<T>::alignment >
-//    >;
+using simd_vec = std::vector<T , bs::allocator<T> >;
 
 template<class T = float>
 constexpr size_t simd_width = bs::cardinal_of<simd_reg<T> >();
@@ -115,8 +113,117 @@ constexpr auto simd_alignment = simd_reg<T>::alignment;
 
 constexpr auto default_alignment = simd_alignment<float>;
 
+namespace detail {
+template<class T>
+struct up_if_object { using type = aligned_ptr<T>;};
+template<class T>
+struct up_if_object<T[]> { };
+template<class T, std::size_t N>
+struct up_if_object<T[N]> { };
+template<class T>
+using up_if_object_t = typename up_if_object<T>::type;
 
-//template<class T>
-//using simd_vec = std::vector<T, align_alloc<T> >;
+template<class T>
+struct up_if_array { };
+template<class T>
+struct up_if_array<T[]> { using type = aligned_ptr<T[]>; };
+
+template<class T>
+using up_if_array_t = typename up_if_array<T>::type;
+
+template<class T>
+struct up_element { };
+template<class T>
+struct up_element<T[]>  { using type = T; };
+template<class T>
+using up_element_t = typename up_element<T>::tupe;
+
+template<class T>
+struct simd_new_align : std::integral_constant<
+    std::size_t
+  , std::max<std::size_t>({
+        default_alignment
+      , simd_alignment<T>
+      , ba::alignment_of<T>::value
+        })
+    > { };
+template<class T>
+constexpr auto simd_new_align_v = simd_new_align<T>::value;
+};
+
+template<class T>
+detail::up_if_object_t<T> make_aligned()
+{
+    auto p = ba::aligned_alloc(detail::simd_new_align_v<T>, sizeof(T));
+    if (!p) {
+        throw std::bad_alloc();
+    }
+    try {
+        auto q = ::new(p) T(); return detail::up_if_object_t<T>(q);
+    } catch (...) {
+        ba::aligned_free(p);
+        throw;
+    }
+}
+template<class T, class... Args>
+detail::up_if_object_t<T> make_aligned(Args&&... args)
+{
+    auto p = ba::aligned_alloc(detail::simd_new_align_v<T>, sizeof(T));
+    if (!p) {
+        throw std::bad_alloc();
+    }
+    try {
+        auto q = ::new(p) T(std::forward<Args>(args)...);
+        return detail::up_if_object_t<T>(q);
+    } catch (...) {
+        ba::aligned_free(p);
+        throw;
+    }
+}
+template<class T, class... Args>
+detail::up_if_object_t<T> make_aligned_noinit()
+{
+    auto p = ba::aligned_alloc(detail::simd_new_align_v<T>, sizeof(T));
+    if (!p) {
+        throw std::bad_alloc();
+    }
+    try {
+        auto q = ::new(p) T;
+        return detail::up_if_object_t<T>(q);
+    } catch (...) {
+        ba::aligned_free(p);
+        throw;
+    }
+}
+template<class T>
+detail::up_if_array_t<T> make_aligned(std::size_t n)
+{
+    using E = detail::up_element_t<T>;
+    if(auto p = ba::aligned_alloc(detail::simd_new_align_v<E>, sizeof(E) * n)) {
+        try {
+            auto q = ::new(p) E[n](); return detail::up_if_array_t<T>(q);
+        } catch (...) {
+            ba::aligned_free(p);
+            throw;
+        }
+    }else{
+        throw std::bad_alloc();
+    }
+}
+template<class T>
+typename detail::up_if_array<T>::type make_aligned_noinit(std::size_t n)
+{
+    using E = detail::up_element_t<T>;
+    if(auto p = ba::aligned_alloc(detail::simd_new_align_v<E>, sizeof(E) * n)) {
+        try {
+            auto q = ::new(p) E[n]; return detail::up_if_array_t<T>(q);
+        } catch (...) {
+            ba::aligned_free(p);
+            throw;
+        }
+    }else{
+        throw std::bad_alloc();
+    }
+}
 
 }

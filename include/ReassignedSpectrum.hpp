@@ -15,16 +15,16 @@ public:
     using size_type = vector_type::size_type;
     using difference_type = vector_type::difference_type;
 
-    vector_type X {  size_type(spacing()) * 2, align_alloc<float>{}};
-    vector_type X_log{size_type(spacing()) * 2 , align_alloc<float>{}};
+    vector_type X {  size_type(spacing()) * 2, bs::allocator<float>{}};
+    vector_type X_log{size_type(spacing()) * 2 , bs::allocator<float>{}};
 
-    vector_type dM_dt  { size_type(spacing()), align_alloc<float>{} };
-    vector_type dPhi_dt{ size_type(spacing()), align_alloc<float>{} };
+    vector_type dM_dt  { size_type(spacing()), bs::allocator<float>{} };
+    vector_type dPhi_dt{ size_type(spacing()), bs::allocator<float>{} };
 
-    vector_type dM_dw  { size_type(spacing()), align_alloc<float>{}};
-    vector_type dPhi_dw{ size_type(spacing()), align_alloc<float>{} };
+    vector_type dM_dw  { size_type(spacing()), bs::allocator<float>{}};
+    vector_type dPhi_dw{ size_type(spacing()), bs::allocator<float>{} };
 
-    vector_type d2Phi_dtdw{size_type(spacing()), align_alloc<float>{} };
+    vector_type d2Phi_dtdw{size_type(spacing()), bs::allocator<float>{} };
 
     RMSpectrum(int _size = 0) : m_size{_size} {}
     RMSpectrum(RMSpectrum && ) noexcept = default;

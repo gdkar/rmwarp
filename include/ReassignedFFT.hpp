@@ -20,18 +20,18 @@ protected:
 
 
 
-    vector_type m_h  {size_type(size()), align_alloc<float>{}};  /// <- transform window
-    vector_type m_Dh {size_type(size()), align_alloc<float>{}};  /// <- time derivative of window
-    vector_type m_Th {size_type(size()), align_alloc<float>{}};  /// <- time multiplied window
-    vector_type m_TDh{size_type(size()), align_alloc<float>{}};  /// <- time multiplied time derivative window;
+    vector_type m_h  {size_type(size()), bs::allocator<float>{}};  /// <- transform window
+    vector_type m_Dh {size_type(size()), bs::allocator<float>{}};  /// <- time derivative of window
+    vector_type m_Th {size_type(size()), bs::allocator<float>{}};  /// <- time multiplied window
+    vector_type m_TDh{size_type(size()), bs::allocator<float>{}};  /// <- time multiplied time derivative window;
 
-    vector_type m_flat{size_type(size()), align_alloc<float>{}}; /// <- input windowing scratch space.
-    vector_type m_split{size_type(spacing()) * 2, align_alloc<float>{}}; /// <- frequency domain scratch space.
+    vector_type m_flat{size_type(size()), bs::allocator<float>{}}; /// <- input windowing scratch space.
+    vector_type m_split{size_type(spacing()) * 2, bs::allocator<float>{}}; /// <- frequency domain scratch space.
 
-    vector_type m_X    {size_type(spacing()) * 2, align_alloc<float>{}}; /// <- transform of windowed signal
-    vector_type m_X_Dh {size_type(spacing()) * 2, align_alloc<float>{}}; /// <- transform of time derivative windowed signal
-    vector_type m_X_Th {size_type(spacing()) * 2, align_alloc<float>{}}; /// <- transform of time multiplied window
-    vector_type m_X_TDh{size_type(spacing()) * 2, align_alloc<float>{}}; /// <- transform of time multiplied time derivative window.
+    vector_type m_X    {size_type(spacing()) * 2, bs::allocator<float>{}}; /// <- transform of windowed signal
+    vector_type m_X_Dh {size_type(spacing()) * 2, bs::allocator<float>{}}; /// <- transform of time derivative windowed signal
+    vector_type m_X_Th {size_type(spacing()) * 2, bs::allocator<float>{}}; /// <- transform of time multiplied window
+    vector_type m_X_TDh{size_type(spacing()) * 2, bs::allocator<float>{}}; /// <- transform of time multiplied time derivative window.
 
     fftwf_plan          m_plan_r2c{0};  /// <- real to complex plan;
     fftwf_plan          m_plan_c2r{0};  /// <0 complex to real plan.
