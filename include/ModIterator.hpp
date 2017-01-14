@@ -17,7 +17,7 @@ _Pragma("once")
 #include <numeric>
 
 #include "Range.hpp"
-#include "Mmath.h"
+#include "Math.h"
 
 namespace RMWarp {
 template<class T>
@@ -65,8 +65,8 @@ struct mod_iterator {
     constexpr bool operator >=(const mod_iterator& o) const { return m_ptr == o.m_ptr && (m_idx >= o.m_idx);}
 
     constexpr mod_iterator operator +(difference_type diff) { return mod_iterator(m_ptr, m_idx+diff, m_mask);}
-    constexpr mod_iterator operator -(difference_type diff) { return mod_iterator(m_ptr, m_idx+diff, m_mask);}
-    constexpr difference_type operator - (const mod_iterator &o) { return (m_ptr == o.m_ptr) ? m_idx - o.m_idx : throw std::invalid_argument("mod_iterators not to same object.");}
+    constexpr mod_iterator operator -(difference_type diff) { return mod_iterator(m_ptr, m_idx-diff, m_mask);}
+    constexpr difference_type operator - (const mod_iterator &o) { m_idx - o.m_idx; }
 
     constexpr mod_iterator &operator ++(){m_idx++;return *this;}
     constexpr mod_iterator &operator ++(int){auto ret = *this;++*this;return ret;}
@@ -76,7 +76,12 @@ struct mod_iterator {
     constexpr mod_iterator &operator -=(difference_type diff) { m_idx -= diff; return *this;}
 
     constexpr pointer   operator ->() const { return m_ptr + offset();}
-    constexpr reference operator *() const { return m_ptr[offset()];}
+    constexpr operator pointer() const      { return m_ptr + offset();}
+    constexpr reference operator *() const  { return m_ptr[offset()];}
     constexpr reference operator[](difference_type diff) const { return m_ptr[(m_idx + diff) & mask()];}
+    constexpr Range<pointer> contig() const
+    {
+        return { m_ptr + offset(), m_ptr + m_mask + 1 };
+    }
 };
 }
