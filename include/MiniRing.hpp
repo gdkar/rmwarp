@@ -131,42 +131,5 @@ public:
             throw std::invalid_argument("pop from empty fifo.");
         }
     }
-    bool try_push_back(const_reference item)
-    {
-        if(full())
-            return false;
-        *end = item;
-        m_widx ++;
-        return true;
-    }
-    bool try_push_back(T && item)
-    {
-        if(full())
-            return false;
-        *end() = std::forward<T>(item);
-        m_widx ++;
-        return true;
-    }
-    template<class... Args>
-    bool try_emplace_back(Args &&...args)
-    {
-        if(!full()) {
-            auto &x = *end();
-            x.~T();
-            ::new (&x) T (std::forward<Args>(args)...);
-            m_widx.fetch_add(1);
-            return true;
-        }else {
-            return false;
-        }
-    }
-    bool try_pop_front(reference item)
-    {
-        if(empty())
-            return false;
-        item = front();
-        m_ridx ++;
-        return true;
-    }
 };
 }
