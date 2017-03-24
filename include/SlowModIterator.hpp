@@ -6,17 +6,17 @@ _Pragma("once")
 #include <utility>
 
 #include "Range.hpp"
-#include "Mmath.h"
+#include "Math.hpp"
 
 namespace RMWarp {
-template<class T>
+template<class T, class R = T&, class P = T*>
 struct slow_mod_iterator {
     using iterator_category = std::random_access_iterator_tag;
     using value_type      = T;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
-    using reference       = T&;
-    using pointer         = T*;
+    using reference       = R;
+    using pointer         = P;
 
     pointer         m_ptr {nullptr};
     difference_type m_idx {0};
@@ -52,17 +52,30 @@ struct slow_mod_iterator {
     constexpr bool operator <=(const slow_mod_iterator& o) const { return m_ptr == o.m_ptr && (m_idx <= o.m_idx);}
     constexpr bool operator >=(const slow_mod_iterator& o) const { return m_ptr == o.m_ptr && (m_idx >= o.m_idx);}
 
-    constexpr slow_mod_iterator operator +(difference_type diff) { return slow_mod_iterator(m_ptr, m_idx+diff, m_size);}
-    constexpr slow_mod_iterator operator -(difference_type diff) { return slow_mod_iterator(m_ptr, m_idx+diff, m_size);}
     constexpr difference_type operator - (const slow_mod_iterator &o) { return (m_ptr == o.m_ptr) ? m_idx - o.m_idx : throw std::invalid_argument("slow_mod_iterators not to same object.");}
 
     constexpr slow_mod_iterator &operator ++(){m_idx++;return *this;}
-    constexpr slow_mod_iterator &operator ++(int){auto ret = *this;++*this;return ret;}
+    constexpr slow_mod_iterator  operator ++(int){auto ret = *this;++*this;return ret;}
     constexpr slow_mod_iterator &operator --(){m_idx--;return *this;}
-    constexpr slow_mod_iterator &operator --(int){auto ret = *this;--*this;return ret;}
+    constexpr slow_mod_iterator  operator --(int){auto ret = *this;--*this;return ret;}
     constexpr slow_mod_iterator &operator +=(difference_type diff) { m_idx += diff; return *this;}
     constexpr slow_mod_iterator &operator -=(difference_type diff) { m_idx -= diff; return *this;}
 
+    friend constexpr slow_mod_iterator operator + (
+        const slow_mod_iterator & lhs
+      , difference_type rhs
+        )
+    { return slow_mod_iterator(lhs.m_ptr, lhs.m_idx+rhs, lhs.m_size); }
+    friend constexpr slow_mod_iterator operator + (
+        difference_type lhs
+      , const slow_mod_iterator & rhs
+        )
+    { return slow_mod_iterator(rhs.m_ptr, rhs.m_idx+lhs, rhs.m_size); }
+    friend constexpr slow_mod_iterator operator - (
+        const slow_mod_iterator & lhs
+      , difference_type rhs
+        )
+    { return slow_mod_iterator(lhs.m_ptr, lhs.m_idx-rhs, lhs.m_size); }
     constexpr pointer   operator ->() const { return m_ptr + offset();}
     constexpr reference operator *() const { return m_ptr[offset()];}
     constexpr reference operator[](difference_type diff) const { return m_ptr[(m_idx + diff) % size()];}

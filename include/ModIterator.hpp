@@ -17,7 +17,7 @@ _Pragma("once")
 #include <numeric>
 
 #include "Range.hpp"
-#include "Math.h"
+#include "Math.hpp"
 
 namespace RMWarp {
 template<class T>
@@ -54,6 +54,7 @@ struct mod_iterator {
     constexpr size_type mask() const   { return m_mask;}
     constexpr size_type size() const   { return mask() + 1ul;}
     constexpr size_type offset() const { return m_idx & mask();}
+    constexpr difference_type index() const { return m_idx;}
     constexpr pointer   data() const   { return m_ptr;}
     constexpr pointer   get()  const   { return data() + offset();}
 
@@ -66,7 +67,7 @@ struct mod_iterator {
 
     constexpr mod_iterator operator +(difference_type diff) { return mod_iterator(m_ptr, m_idx+diff, m_mask);}
     constexpr mod_iterator operator -(difference_type diff) { return mod_iterator(m_ptr, m_idx-diff, m_mask);}
-    constexpr difference_type operator - (const mod_iterator &o) { m_idx - o.m_idx; }
+    constexpr difference_type operator - (const mod_iterator &o) { return m_idx - o.m_idx; }
 
     constexpr mod_iterator &operator ++(){m_idx++;return *this;}
     constexpr mod_iterator &operator ++(int){auto ret = *this;++*this;return ret;}

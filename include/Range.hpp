@@ -54,11 +54,11 @@ struct Range {
     }
     constexpr Range split_first(size_type _size)
     {
-        return _size <= size() ? { _begin, _begin + _size} : *this;
+        return _size <= size() ? Range{ _begin, _begin + _size} : *this;
     }
     constexpr Range split_second(size_type _size)
     {
-        return _size <= size() ? { _begin + _size, _end} : { _end,_end};
+        return _size <= size() ? Range{ _begin + _size, _end} : Range{ _end,_end};
     }
 };
 

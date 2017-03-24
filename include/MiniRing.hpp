@@ -16,8 +16,8 @@ _Pragma("once")
 #include <limits>
 #include <numeric>
 
+#include "Math.hpp"
 #include "Range.hpp"
-#include "Math.h"
 #include "SlowModIterator.hpp"
 namespace RMWarp {
 template<class T>
@@ -29,14 +29,15 @@ protected:
     std::vector<T>         m_data{m_size};
 public:
     using value_type = T;
-    using size_type       = size_t;
+    using container_type = std::vector<T>;
+    using size_type       = typename container_type::size_type;
     using difference_type = int64_t;
-    using reference       = T&;
-    using const_reference = const T&;
-    using pointer         = T*;
-    using const_pointer   = const T*;
-    using iterator        = slow_mod_iterator<T>;
-    using const_iterator  = slow_mod_iterator<const T>;
+    using reference       = typename container_type::reference;
+    using const_reference = typename container_type::const_reference;
+    using pointer         = typename container_type::pointer;
+    using const_pointer   = typename container_type::const_pointer;
+    using iterator        = slow_mod_iterator<value_type, reference,pointer>;
+    using const_iterator  = slow_mod_iterator<value_type, const_reference,const_pointer>;
     using range_type      = Range<iterator>;
     MiniRing() = default;
     explicit MiniRing(size_type cap, const T & item = T{})
@@ -63,72 +64,127 @@ public:
     size_type capacity()           const { return m_size; }
     difference_type read_index()   const { return m_ridx;}
     difference_type write_index()  const { return m_widx;}
-    difference_type last_index()  const { return m_widx - 1;}
+    difference_type last_index()   const { return m_widx - 1;}
     size_type       read_offset()  const { return read_index() % size();}
     size_type       write_offset() const { return write_index() % size();}
     size_type       last_offset() const { return last_index() % size();}
-    pointer data()   const { return m_data.get();}
+    const_pointer data()   const { return m_data.data();}
+    pointer data()   { return m_data.data();}
     size_type size() const { return write_index() - read_index();}
     size_type space()const { return (read_index() + capacity()) - write_index();}
     bool      full() const { return (read_index() + capacity()) == write_index();}
     bool      empty()const { return read_index() == write_index();}
 
-    iterator begin()              { return iterator(data(),read_index(),size());}
-    const_iterator begin()  const { return const_iterator(data(),read_index(),size());}
+    void clear()
+    {
+        m_ridx = m_widx;
+        std::fill(std::begin(m_data),std::end(m_data),value_type{});
+    }
+    void reset(int64_t idx)
+    {
+        m_ridx = m_widx = idx;
+    }
+    void resize(size_t new_size)
+    {
+        if(new_size == capacity())
+            return;
+        if(new_size < size()) {
+            m_ridx = m_widx - new_size;
+        }
+        std::rotate(std::begin(m_data),std::begin(m_data) + read_offset(),std::end(m_data));
+        m_data.resize(new_size);
+        m_size = new_size;
+        std::rotate(std::begin(m_data),std::end(m_data) - read_offset(),std::end(m_data));
+    }
+    iterator begin()              { return iterator(data(),read_index(),capacity());}
+    const_iterator begin()  const { return const_iterator(data(),read_index(),capacity());}
     const_iterator cbegin() const { return begin();}
 
-    iterator end()                { return iterator(data(),write_index(),size());}
-    const_iterator end()    const { return const_iterator(data(),write_index(),size());}
+    iterator end()                { return iterator(data(),write_index(),capacity());}
+    const_iterator end()    const { return const_iterator(data(),write_index(),capacity());}
     const_iterator cend()   const { return end();}
 
-    reference front()             { return *begin();}
-    const_reference front() const { return *begin();}
+    reference front()             { return m_data[read_offset()];}
+    const_reference front() const { return m_data[read_offset()];}
 
     reference back ()             { return m_data[last_offset()];}
     const_reference back () const { return m_data[last_offset()];}
 
     reference operator[](difference_type idx)
     {
-        return begin()[idx];
+        return m_data[((idx < 0 ? write_index() : read_index()) + idx) % capacity()];
     }
     const_reference operator[](difference_type idx) const
     {
-        return cbegin()[idx];
+        return m_data[((idx < 0 ? write_index() : read_index()) + idx) % capacity()];
     }
     const_reference at (difference_type idx) const
     {
-        if(idx < 0 || size_type(idx) >= size())
+        if(idx <= -size() || idx >= size())
             throw std::out_of_range();
-        return cbegin()[idx];
+        return m_data[((idx < 0 ? write_index() : read_index()) + idx) % capacity()];
+    }
+    void push_back_expanding()
+    {
+        if(full())
+            resize(std::max(capacity(), 8ul)* 3 / 2);
+        m_widx++;
+    }
+    void push_back_expanding(const_reference item)
+    {
+        push_back_expanding();
+        back() = item;
+    }
+    void push_back_expanding(value_type&& item)
+    {
+        push_back_expanding();
+        back() = std::forward<value_type>(item);
+    }
+    template<class... Args>
+    void emplace_back_expanding(Args &&... args)
+    {
+        push_back_expanding();
+        m_widx++;
+        auto &x = back();
+        x.~T();
+        ::new (&x) T (std::forward<Args>(args)...);
+    }
+    void push_back()
+    {
+        if(full())
+            pop_front();
+        m_widx++;
     }
     void push_back(const_reference item)
     {
         if(full())
             pop_front();
-        back() = item; m_widx ++;
+        m_widx++;
+        back() = item;
     }
     void push_back(T && item)
     {
         if(full())
             pop_front();
-        back() = std::forward<T>(item); m_widx.fetch_add(1);
+        m_widx++;
+        back() = std::forward<T>(item);
     }
     template<class... Args>
     void emplace_back(Args &&...args)
     {
         if(full())
             pop_front();
-        auto &x = *end();
-        x.~T();a
+        m_widx ++;
+        auto &x = back();
+        x.~T();
         ::new (&x) T (std::forward<Args>(args)...);
-        m_widx.fetch_add(1);
     }
     void pop_front()
     {
         if(!empty()) {
             m_ridx++;
         } else {
-            throw std::invalid_argument("pop from empty fifo.");
+            throw std::runtime_error("pop from empty fifo.");
         }
     }
 };

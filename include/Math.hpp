@@ -9,7 +9,6 @@
 #include <iterator>
 #include <ctgmath>
 #include <cmath>
-#include <valarray>
 #include <algorithm>
 #include <memory>
 #include "Simd.hpp"
@@ -19,8 +18,8 @@ template<class T> constexpr const T T_PI = T{M_PI};
 template<class T> constexpr const T T_TWO_PI = T{2*M_PI};
 template<class T> constexpr const T T_PI_2 = T{0.5*M_PI};
 
-template<class T>
-constexpr T princarg(T a) { return bs::rem(a, T_TWO_PI<T>);}
+//template<class T>
+//constexpr decltype(auto) princarg(T a) { return bs::pedantic_(bs::rem)(a,bs::Twopi<T>());}
 
 template<class T>
 constexpr int ilog2(T t)
@@ -47,6 +46,17 @@ constexpr int ilog2(int8_t t)   { return ilog2(int32_t(t)); }
 template<typename T>
 T roundup ( T x) { return T{1} << ilog2(x); }
 
+template<class T>
+constexpr T align_up(T x, T a) {
+    using U = std::make_unsigned_t<T>;
+    auto m = U(x) % U(a);
+    return m ? T(x + a - m) : x;
+}
+template<class T>
+constexpr T align_down(T x, T a) {
+    using U = std::make_unsigned_t<T>;
+    return T(U(x) - (U(x) % U(a)));
+}
 template<class T, class Compare>
 constexpr const T& clamp( const T& v, const T& lo, const T& hi, Compare && comp)
 {

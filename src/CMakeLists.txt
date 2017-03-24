@@ -4,8 +4,8 @@ set( rmwarp_SOURCES FFT.cpp
 set( rmwarp_HEADERS ../include/FFT.hpp
                     ../include/Simd.hpp
                     ../include/Math.hpp
-                    ../include/ReassignedSpectrum.hpp
-                    ../include/ReassignedFFT.hpp
+                    ../include/ReSpectrum.hpp
+                    ../include/ReFFT.hpp
                     TimeWeightedWindow.hpp
                     TimeDerivativeWindow.hpp )
 
