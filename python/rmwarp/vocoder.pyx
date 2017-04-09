@@ -2,11 +2,9 @@ from libcpp cimport vector, map as std_map, unordered_map, deque
 from libcpp.string cimport string  as std_string
 
 import framer
-from . cimport rmspectrum
-#from rmspectrum import RMSpectrum
-from .rmspectrum cimport RMSpectrum
-#from rmfft import RMFFT
-from .rmfft cimport RMFFT
+from . cimport respectrum
+from .respectrum cimport ReSpectrum
+from .refft cimport ReFFT
 from .basic cimport time_derivative_window
 from .basic cimport time_weighted_window
 import numpy as np
@@ -31,14 +29,14 @@ cdef linear_interp(p0, p1, float x, float x_lo, float x_hi):
 cdef class Vocoder:
     def __init__(self, filename, frame_size=2048, hop_size=256, hop_size_out = 128):
         self.framer = framer.NpFramer(filename, frame_size = frame_size, hop_size=hop_size, layout='mono')
-        self.fft = RMFFT(frame_size, ss.hann(frame_size))
+        self.fft = ReFFT(frame_size, ss.hann(frame_size))
         self.__hop_size = hop_size
         self.__hop_size_out = hop_size_out
         self.__frame_size = frame_size
         self.__max_frames = 64
         self.__time_ratio = 1.0
         self.spec = [self.fft.process(next(_ for _ in self.framer if _.std() > 0.125))]
-        self.__spec_acc = RMSpectrum(frame_size)
+        self.__spec_acc = ReSpectrum(frame_size)
         self.__time_in    = self.framer.next_sample - self.frame_size/2
         self.__time_origin= -self.__time_in
         self.__time_out   = 0
@@ -59,7 +57,7 @@ cdef class Vocoder:
         last_spec = self.spec[-1]
         prev_spec = self.spec[-2]
 
-        cdef RMSpectrum res = RMSpectrum(self.__frame_size)
+        cdef ReSpectrum res = ReSpectrum(self.__frame_size)
         res.size = self.__frame_size
         res.when = when
         res.M[::] = cubic_hermite(
@@ -85,14 +83,14 @@ cdef class Vocoder:
           , last_spec.when
             );
         return res
-    cpdef advance_spec(self, RMSpectrum spec):
+    cpdef advance_spec(self, ReSpectrum spec):
         x_dist = spec.when - self.spec_acc.when
         spec.Phi[::] = self.spec_acc.Phi + x_dist * (self.spec_acc.dPhi_dt + spec.dPhi_dt)*0.5
         spec.Phi[::] += self.unit * x_dist
         spec.Phi[::] = np.fmod(spec.Phi[::],np.pi*2)
         return spec
 
-    cpdef synthesize_frame(self, RMSpectrum spec):
+    cpdef synthesize_frame(self, ReSpectrum spec):
         res = self.fft.synthesize(spec)
         self.__accumulator[:len(res)][::] += res
         self.__windowAccumulator[:len(res)] += self.fft.h ** 2

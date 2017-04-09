@@ -1,19 +1,20 @@
 #from _refft cimport ReFFT
 #from _respectrum cimport ReSpectrum
 from .respectrum cimport ReSpec
+from _refft cimport ReFFT as _ReFFT
 from libcpp.vector cimport vector
 from libc.stdint cimport int64_t,int32_t
 cimport numpy as np
 import  numpy as np
 
 ctypedef float * floatp
-cdef class ReFft:
+cdef class ReFFT:
     def __cinit__(self,int size = 2048, *args, **kwargs):
         alpha = kwargs.pop('alpha',None)
         if alpha is not None:
-            self.m_d = ReFFT.Kaiser(size,alpha)
+            self.m_d = _ReFFT.Kaiser(size,alpha)
             return
-        self.m_d = ReFFT(size)
+        self.m_d = _ReFFT(size)
         win = kwargs.pop('win',None)
 
     def __len__(self):
@@ -21,7 +22,7 @@ cdef class ReFft:
 
     def set_window(self, win):
 #        cdef float[:] tmp = win[:]
-        self.m_d = ReFFT(<int32_t>(len(win)))
+        self.m_d = _ReFFT(<int32_t>(len(win)))
         cdef float[:] tmp = np.asarray(win,dtype=np.float32)
         self.m_d.setWindow(&tmp[0],&tmp[0] + len(tmp))
 

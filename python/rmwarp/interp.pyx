@@ -2,8 +2,8 @@
 #cython: language_level=3
 #cython: extension_language=c++
 import pyfftw as fftw, numpy as np, scipy as sp, scipy.signal as ss
-from .rmspectrum import RMSpectrum
-from .rmspectrum cimport RMSpectrum
+from .refft import ReFFT
+from .respectrum cimport ReSpectrum
 from . import basic
 
 cimport numpy as np

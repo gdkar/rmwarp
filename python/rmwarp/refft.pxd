@@ -1,6 +1,6 @@
-from ._refft cimport ReFFT
+from ._refft cimport ReFFT as _ReFFT
 from ._respectrum cimport ReSpectrum
 from libcpp.vector cimport vector
 
-cdef class ReFft:
-    cdef ReFFT m_d
+cdef class ReFFT:
+    cdef _ReFFT m_d
