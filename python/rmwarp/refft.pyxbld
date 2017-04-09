@@ -1,0 +1,16 @@
+import pathlib
+this_dir = pathlib.Path(__file__).parent
+def make_ext(modname, pyxfilename):
+    from distutils.extension import Extension
+    return Extension(
+         name=modname
+        ,sources=[pyxfilename]
+        ,include_dirs=[this_dir.as_posix(),
+                '/usr/local/include',
+                '/usr/local/include/rmwarp']
+        ,libraries=['rmwarp']
+        ,library_dirs = [
+            '/usr/local/lib/','/usr/lib/',
+            ]
+        ,language='c++'
+        ,)

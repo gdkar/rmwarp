@@ -7,11 +7,11 @@
 #include <iterator>
 #include <type_traits>
 #include <map>
-#include "Math.hpp"
-#include "sysutils.h"
-#include "Simd.hpp"
-#include "VectorOps.hpp"
-#include "Allocators.hpp"
+#include "rmwarp/Math.hpp"
+#include "rmwarp/sysutils.hpp"
+#include "rmwarp/Simd.hpp"
+#include "rmwarp/VectorOps.hpp"
+#include "rmwarp/Allocators.hpp"
 
 namespace {
 constexpr const float A0[] =

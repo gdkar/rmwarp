@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Math.hpp"
-#include "Simd.hpp"
-#include "VectorOpsComplex.hpp"
-#include "TimeWeightedWindow.hpp"
-#include "TimeDerivativeWindow.hpp"
-#include "TimeAlias.hpp"
-#include "ReSpectrum.hpp"
+#include "rmwarp/Math.hpp"
+#include "rmwarp/Simd.hpp"
+#include "rmwarp/VectorOpsComplex.hpp"
+#include "rmwarp/TimeWeightedWindow.hpp"
+#include "rmwarp/TimeDerivativeWindow.hpp"
+#include "rmwarp/TimeAlias.hpp"
+#include "rmwarp/ReSpectrum.hpp"
 
 namespace RMWarp {
 
@@ -28,18 +28,18 @@ struct ReFFT {
     float m_epsilon = std::numeric_limits<float>::epsilon();
 
     allocator_type m_alloc{};
-    vector_type m_h  {size_type(size()), m_alloc};  /// <- transform window
-    vector_type m_Dh {size_type(size()), m_alloc};  /// <- time derivative of window
-    vector_type m_Th {size_type(size()), m_alloc};  /// <- time multiplied window
-    vector_type m_TDh{size_type(size()), m_alloc};  /// <- time multiplied time derivative window;
+    vector_type m_h     {size_type(size()), m_alloc};  /// <- transform window
+    vector_type m_Dh    {size_type(size()), m_alloc};  /// <- time derivative of window
+    vector_type m_Th    {size_type(size()), m_alloc};  /// <- time multiplied window
+    vector_type m_TDh   {size_type(size()), m_alloc};  /// <- time multiplied time derivative window;
 
-    vector_type m_flat{size_type(size()), m_alloc}; /// <- input windowing scratch space.
-    vector_type m_split{size_type(spacing()) * 2, m_alloc}; /// <- frequency domain scratch space.
+    vector_type m_flat  {size_type(size()), m_alloc}; /// <- input windowing scratch space.
+    vector_type m_split {size_type(spacing()) * 2, m_alloc}; /// <- frequency domain scratch space.
 
-    vector_type m_X    {size_type(spacing()) * 2, m_alloc}; /// <- transform of windowed signal
-    vector_type m_X_Dh {size_type(spacing()) * 2, m_alloc}; /// <- transform of time derivative windowed signal
-    vector_type m_X_Th {size_type(spacing()) * 2, m_alloc}; /// <- transform of time multiplied window
-    vector_type m_X_TDh{size_type(spacing()) * 2, m_alloc}; /// <- transform of time multiplied time derivative window.
+    vector_type m_X     {size_type(spacing()) * 2, m_alloc}; /// <- transform of windowed signal
+    vector_type m_X_Dh  {size_type(spacing()) * 2, m_alloc}; /// <- transform of time derivative windowed signal
+    vector_type m_X_Th  {size_type(spacing()) * 2, m_alloc}; /// <- transform of time multiplied window
+    vector_type m_X_TDh {size_type(spacing()) * 2, m_alloc}; /// <- transform of time multiplied time derivative window.
 
     fftwf_plan          m_plan_r2c{0};  /// <- real to complex plan;
     fftwf_plan          m_plan_c2r{0};  /// <0 complex to real plan.

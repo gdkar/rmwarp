@@ -24,15 +24,15 @@
 #ifndef _RUBBERBAND_VECTOR_OPS_H_
 #define _RUBBERBAND_VECTOR_OPS_H_
 
-#include "Profiler.h"
+#include "base/Profiler.h"
 
 #include <cstring>
-#include "Simd.hpp"
-#include "Allocators.hpp"
-#include "Math.hpp"
+#include "system/Simd.hpp"
+#include "system/Allocators.h"
+#include "system/Math.h"
 #include "sysutils.h"
 
-namespace RMWarp {
+namespace RubberBand {
 
 // Note that all functions with a "target" vector have their arguments
 // in the same order as memcpy and friends, i.e. target vector first.
@@ -43,22 +43,44 @@ namespace RMWarp {
 // Linux, ideally also gcc-4.0 on OS/X).
 
 template<typename T>
-void v_zero(T *const ptr,int count)
+void v_zero(T *const ptr,
+                   int count)
 {
     std::fill_n(ptr,count, T{});
 }
 template<typename T>
-void v_set(T *const ptr,const T value,int count)
+void v_zero_channels(T *const *const ptr,
+                            int channels,
+                            int count)
+{
+    for (int c = 0; c < channels; ++c)
+        v_zero(ptr[c], count);
+}
+template<typename T>
+void v_set(T *const ptr,
+                  const T value,
+                  int count)
 {
     std::fill_n(ptr,count,value);
 }
+
 template<typename T>
 void v_copy(T *const dst,
-            const T *const src,
-            int count)
+                   const T *const src,
+                   int count)
 {
     std::copy_n(src,count,dst);
 }
+template<typename T>
+void v_copy_channels(T *const *const dst,
+                            const T *const *const src,
+                            int channels,
+                            int count)
+{
+    for (int c = 0; c < channels; ++c)
+        v_copy(dst[c], src[c], count);
+}
+
 // src and dst alias by definition, so not restricted
 template<typename T>
 void v_move(T *const dst,
@@ -76,6 +98,23 @@ void v_shift(T *const dst, int count , int by)
     std::move(beg,end,dst);
     std::fill(mid,end, T{});
 }
+template<typename T, typename U>
+void v_convert(U *const dst,
+                      const T *const src,
+                      int count)
+{
+    std::copy_n(src,count,dst);
+}
+template<typename T, typename U>
+void v_convert_channels(U *const *const dst,
+                               const T *const *const src,
+                               int channels,
+                               int count)
+{
+    for (int c = 0; c < channels; ++c) {
+        v_convert(dst[c], src[c], count);
+    }
+}
 template<typename T>
 void v_add(T *const dst,
                   const T *const src,
@@ -88,8 +127,15 @@ void v_add(T *const dst,
                   const T value,
                   int count)
 {
-//    auto v = simd_reg<T>(value);
-    bs::transform(dst,dst+count,dst, [v=value](auto x){return x + v;});
+    auto v = simd_reg<T>(value);
+    bs::transform(dst,dst+count,dst, [v](auto x){return x + v;});
+}
+template<typename T>
+void v_add_channels(T *const *const dst,
+                           const T *const *const src,
+                           int channels, int count)
+{
+    bs::transform(src,src+count,dst,dst,bs::plus);
 }
 template<typename T, typename G>
 void v_add_with_gain(T *const dst,
@@ -99,17 +145,24 @@ void v_add_with_gain(T *const dst,
 {
     bs::transform(src,src+count,dst,dst,[gain](auto x, auto y) { return y + x* gain; });
 }
+template<typename T, typename G>
+void v_add_channels_with_gain(T *const *const dst,
+                                     const T *const *const src,
+                                     G gain,
+                                     int channels, int count)
+{
+    for (auto c = 0; c < channels; ++c)
+        v_add_with_gain(dst[c], src[c], gain, count);
+}
 template<typename T>
 void v_subtract(T *const dst,const T *const src,int count)
 {
     bs::transform(dst,dst+count,src,dst,bs::minus);
 }
 template<typename T, typename G>
-void v_scale(
-    T *const dst,
-    T const *const src,
-    const G gain,
-    int count)
+void v_scale(T *const dst, T const *const src,
+                    const G gain,
+                    int count)
 {
     bs::transform(src,src+count,dst,[gain](auto x){ return x* gain;});
 }
@@ -150,11 +203,10 @@ void v_multiply_and_add(T *const dst,
     bs::transform(src,src+count,dst,dst,[gain](auto x, auto y) { return y + x* gain; });
 }
 template<typename T>
-void v_multiply_and_add(
-    T *const dst,
-    const T *const src1,
-    const T *const src2,
-    int count)
+void v_multiply_and_add(T *const dst,
+                               const T *const src1,
+                               const T *const src2,
+                               int count)
 {
     int i = 0;
     constexpr auto w = int(simd_width<T>);

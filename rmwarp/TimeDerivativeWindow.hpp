@@ -1,9 +1,10 @@
 #pragma once
 
+#include <fftw3.h>
 #include "Math.hpp"
 #include "Simd.hpp"
+#include "Plan.hpp"
 #include "Allocators.hpp"
-#include <fftw3.h>
 
 namespace RMWarp {
 template<class InputIt, class OutputIt>

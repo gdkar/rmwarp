@@ -19,7 +19,7 @@ _Pragma("once")
 
 #include "Math.hpp"
 #include "Simd.hpp"
-#include "sysutils.h"
+#include "sysutils.hpp"
 #include "Range.hpp"
 #include "ModIterator.hpp"
 

@@ -19,7 +19,7 @@ from os import environ
 
 cmake_builddir = pathlib.Path('.').resolve().parent
 print(cmake_builddir.as_posix())
-cmake_libobj= cmake_builddir.joinpath('build').joinpath('src').joinpath('librmwarp.a')
+cmake_libobj= cmake_builddir.joinpath('build').joinpath('lib').joinpath('librmwarp.a')
 print(cmake_libobj.as_posix())
 assert cmake_libobj.exists()
 
@@ -39,17 +39,17 @@ setup(
                 'Intended Audience :: Developers'],
     cmdclass = { 'build_ext':build_ext},
     packages=find_packages(exclude=['build*']),
-    ext_modules = cythonize([Extension("_rmwarp", ["rmwarp/_rmwarp.pyx"],
-        include_dirs=include_dirs
-        extra_objects=extra_objects
+    ext_modules = cythonize([Extension("_rmwarp", ["rmwarp/_rmwarp.pyx"]
+        ,include_dirs=include_dirs
+        ,extra_objects=extra_objects
         ,compiler_directives={
-        "embedsignature":True,
-        "always_allow_kwords":True,
-        "cdivision_warnings":True,
-        "cdivision":True,
-        "infer_types":True,
-        "boundscheck":False,
-        "overflowcheck":False,
-        "wraparound":False})
+         "embedsignature":True
+        ,"always_allow_kwords":True
+        ,"cdivision_warnings":True
+        ,"cdivision":True
+        ,"infer_types":True
+        ,"boundscheck":False
+        ,"overflowcheck":False
+        ,"wraparound":False})
     ])
 )

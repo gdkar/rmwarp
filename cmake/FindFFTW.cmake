@@ -76,9 +76,24 @@ find_library( FFTW_SINGLE_PRECISION_LIBRARIES
     DOC "FFTW dynamic library"
 )
 mark_as_advanced( FFTW_SINGLE_PRECISION_LIBRARIES )
+find_library( FFTWF_THREADS_LIBRARIES
+    NAMES fftw3f_threads libfftw3f_threads-3
+    HINTS
+        ${FFTW_ROOT}/lib
+        ${FFTW_ROOT}/.libs
+        ${FFTW_ROOT}
+        $ENV{FFTW_ROOT}/lib
+        $ENV{FFTW_ROOT}/.libs
+        ENV FFTW_ROOT
+    PATHS
+        /usr/lib
+        /usr/local/lib
+    DOC "FFTW dynamic library"
+)
+mark_as_advanced( FFTWF_THREADS_LIBRARIES )
 
 find_library( FFTW_THREADS_LIBRARIES
-    NAMES fftw3f_threads libfftw3f_threads-3
+    NAMES fftw3_threads libfftw3_threads-3
     HINTS
         ${FFTW_ROOT}/lib
         ${FFTW_ROOT}/.libs
@@ -109,7 +124,7 @@ find_library( FFTW_DOUBLE_PRECISION_LIBRARIES
 )
 mark_as_advanced( FFTW_DOUBLE_PRECISION_LIBRARIES )
 
-set( FFTW_LIBRARIES ${FFTW_SINGLE_PRECISION_LIBRARIES} ${FFTW_DOUBLE_PRECISION_LIBRARIES} ${FFTW_THREADS_LIBRARIES} )
+set( FFTW_LIBRARIES ${FFTW_SINGLE_PRECISION_LIBRARIES} ${FFTW_DOUBLE_PRECISION_LIBRARIES} ${FFTWF_THREADS_LIBRARIES} ${FFTW_THREADS_LIBRARIES} )
 mark_as_advanced( FFTW_LIBRARIES )
 
 include( FindPackageHandleStandardArgs )

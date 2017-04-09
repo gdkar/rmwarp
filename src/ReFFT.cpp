@@ -1,7 +1,7 @@
 #include <thread>
 #include <mutex>
-#include "dsp/ReFFT.hpp"
-#include "dsp/KaiserWindow.hpp"
+#include "rmwarp/ReFFT.hpp"
+#include "rmwarp/KaiserWindow.hpp"
 using namespace RMWarp ;
 namespace detail {
 struct _wisdom_reg {

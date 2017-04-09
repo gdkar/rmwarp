@@ -25,24 +25,46 @@ struct Range {
     using value_type      = typename std::iterator_traits<Iter>::value_type;
     using reference       = typename std::iterator_traits<Iter>::reference;
     using pointer         = typename std::iterator_traits<Iter>::pointer;
-    Iter _begin{};
-    Iter _end  {};
+    using iterator        = Iter;
+
+    iterator _begin{};
+    iterator _end  {};
     constexpr Range() = default;
-    constexpr Range(const Iter &_b, const Iter &_e) : _begin(_b),_end(_e){}
+    constexpr Range(const iterator &_b, const iterator &_e) : _begin(_b),_end(_e){}
+    template<class Tup, class It = typename std::tuple_element<0,Tup>::type >
+    constexpr Range(Tup && tup)
+    : Range{ std::get<0>(std::forward<Tup>(tup)),
+             std::get<1>(std::forward<Tup>(tup))}
+    { }
     constexpr Range(const Range &o)        = default;
     constexpr Range(Range &&o) noexcept    = default;
     Range &operator = (const Range &o)     = default;
     Range &operator = (Range &&o) noexcept = default;
-    constexpr Iter begin() const { return _begin; }
-    constexpr Iter end()   const { return _end; }
-    constexpr Iter cbegin()const { return _begin; }
-    constexpr Iter cend()  const { return _end; }
+    constexpr iterator begin() const { return _begin; }
+    constexpr iterator end()   const { return _end; }
+    constexpr iterator cbegin()const { return _begin; }
+    constexpr iterator cend()  const { return _end; }
     constexpr bool empty() const { return _begin == _end;}
-    constexpr operator bool() const { return !empty();}
-    constexpr bool operator !() const { return empty();}
-    constexpr size_type size() const { return std::distance(begin(),end());}
-    constexpr reference operator[](difference_type idx) { return *std::next(begin(),idx);}
-    constexpr const reference operator[](difference_type idx) const { return *std::next(begin(),idx);}
+    constexpr operator bool() const
+    {
+        return !empty();
+    }
+    constexpr bool operator !() const
+    {
+        return empty();
+    }
+    constexpr size_type size() const
+    {
+        return std::distance(begin(),end());
+    }
+    constexpr reference operator[](difference_type idx)
+    {
+        return *std::next(begin(),idx);
+    }
+    constexpr const reference operator[](difference_type idx) const
+    {
+        return *std::next(begin(),idx);
+    }
     constexpr std::array<Range,2> split(size_type _size)
     {
         if(_size < size()) {
@@ -58,20 +80,26 @@ struct Range {
     }
     constexpr Range split_second(size_type _size)
     {
-        return _size <= size() ? Range{ _begin + _size, _end} : Range{ _end,_end};
+        return _size <= size() ? Range{ _begin + _size, _end} : Range{_end,_end};
     }
 };
 
 template<class Iter>
-Range<Iter> make_range(Iter _begin, Iter _end) { return {_begin,_end}; }
+Range<Iter> make_range(Iter _begin, Iter _end)
+{
+    return {_begin,_end};
+}
+
+template<class Tup>
+Range<typename std::tuple_element<0,Tup>::type> make_range(Tup && tup)
+{
+    return {std::get<0>(std::forward<Tup>(tup)),std::get<1>(std::forward<Tup>(tup))};
+}
 
 template<class Container>
-Range<typename Container::iterator> iter_range(Container && c)
+Range<typename Container::iterator> make_range(Container && c)
 {
-    using std::begin;
-    using std::end;
-    using std::forward;
-    return {begin(forward<Container>(c)),end(forward<Container>(c))};
+    return {std::begin(std::forward<Container>(c)),std::end(std::forward<Container>(c))};
 }
 template<class I0, class I1>
 std::array<std::pair< Range<I0>,Range<I1> >, 3>
