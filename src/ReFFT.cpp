@@ -2,7 +2,7 @@
 #include <mutex>
 #include "rmwarp/ReFFT.hpp"
 #include "rmwarp/KaiserWindow.hpp"
-using namespace RMWarp ;
+using namespace RMWarp;
 namespace detail {
 struct _wisdom_reg {
     template<class F,class D>

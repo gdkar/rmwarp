@@ -1,7 +1,8 @@
-#pragma once
+_Pragma("once")
 
 #include "rmwarp/Simd.hpp"
 #include "rmwarp/Math.hpp"
+#include "rmwarp/sysutils.hpp"
 
 namespace RMWarp{
 
@@ -19,7 +20,7 @@ public:
 
 protected:
     int m_size;
-    int m_coef{m_size / 2 + 1};
+    int m_coef{m_size?(m_size / 2 + 1):0};
     int m_spacing{align_up(m_coef, item_alignment)};
     int64_t m_when{0};
 public:
@@ -129,7 +130,7 @@ public:
         m_coef = m_size / 2 + 1;
         m_spacing = align_up(m_coef, item_alignment);
         X.resize(m_spacing * 2);
-        cexpr_for_each([sz=m_spacing](auto & item){item.resize(sz);}
+        cexpr_for_each([sz=size_type(m_spacing)](auto & item){if(item.size() != sz) item.resize(sz);}
             , mag
             , M
             , Phi
@@ -144,10 +145,6 @@ public:
             , lgd_acc
             , lgd_weight
             , ltime);
-//            ,&d2Phi_dtdw, &impulse_position, &impulse_quality}
-//            })
-//            p->resize(m_spacing);
-//        rm_when.resize(m_spacing);
     }
     void reset(int _size, int64_t _when)
     {
@@ -163,7 +160,7 @@ public:
 
         auto _d2Phi   = d2Phi_dtdw_data();
         auto _d2Phia  = d2Phi_dtdw_acc_data();
-        auto _d2Phiw  = d2Phi_dtdw_weight_data();
+//        auto _d2Phiw  = d2Phi_dtdw_weight_data();
         auto _mag     = mag_data();
 
         auto _dPhi_dw = dPhi_dw_data();

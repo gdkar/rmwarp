@@ -17,10 +17,10 @@ struct FFTPlan {
     using const_reference = const value_type&;
     typedef void (r2c_exec)(const fftwf_plan, float*ri,float*ro,float*io);
     typedef void (c2c_exec)(const fftwf_plan, float*ri,float*ii,float*ro,float*io);
+    value_type  m_d{0};
     r2c_exec *m_r2c{};
     c2c_exec*m_c2c{};
 
-    value_type  m_d{0};
 
     operator value_type() const { return m_d; }
     value_type get() const { return m_d; }

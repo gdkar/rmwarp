@@ -16,21 +16,48 @@ import sys, os, pathlib
 from os.path import join, exists,dirname
 from os import environ
 
+this_dir = pathlib.Path(__file__).resolve().parent
 
-cmake_builddir = pathlib.Path('.').resolve().parent
+cmake_rootdir = this_dir.parent
+print(cmake_rootdir.as_posix())
+cmake_builddir = cmake_rootdir.joinpath('build')
 print(cmake_builddir.as_posix())
-cmake_libobj= cmake_builddir.joinpath('build').joinpath('lib').joinpath('librmwarp.a')
+cmake_libobj= cmake_builddir.joinpath('lib','librmwarp.a')
 print(cmake_libobj.as_posix())
 assert cmake_libobj.exists()
 
+ext_srcdir = this_dir.joinpath('rmwarp')
+ext_srcs   = list(ext_srcdir.glob('*.pyx'))
+ext_incdir = cmake_rootdir.joinpath('rmwarp')
+print(ext_incdir.as_posix())
+ext_modules = cythonize([Extension(
+    src.relative_to(this_dir).with_suffix('').as_posix().replace('/','.')
+  , [src.as_posix()]
+  , language='c++'
+  , include_dirs=[ext_incdir.as_posix(),cmake_rootdir.as_posix()]
+  , libraries=['rmwarp']
+  , extra_compile_args=['-std=gnu++14','-g','-ggdb','-march=native']
+  , library_dirs=[cmake_libobj.parent.as_posix()]
+  ) for src in ext_srcs]
+  , compiler_directives={
+     "embedsignature":True
+    ,"always_allow_kwords":True
+    ,"cdivision_warnings":True
+    ,"cdivision":True
+    ,"infer_types":True
+    ,"boundscheck":False
+    ,"overflowcheck":False
+    ,"wraparound":True})
+
+include_dirs = cmake_rootdir.joinpath('rmwarp')
+
 extra_objects = [cmake_libobj.as_posix()]
-include_dirs  = [ pathlib.Path('.').resolve().parent.joinpath('include')]
 setup(
-    name='rmwrap',
+    name='rmwarp',
     version='0.0.0',
     author="gabriel d. karpman",
     license='MIT',
-    description='cython binding for librmwrap reassignment-method time stretch',
+    description='cython binding for librmwarp reassignment-method time stretch',
     classifiers=['Programming Language :: Python :: 2.7',
                 'Operating System :: MacOS :: MacOS X',
                 'Operating System :: Microsoft :: Windows',
@@ -39,17 +66,6 @@ setup(
                 'Intended Audience :: Developers'],
     cmdclass = { 'build_ext':build_ext},
     packages=find_packages(exclude=['build*']),
-    ext_modules = cythonize([Extension("_rmwarp", ["rmwarp/_rmwarp.pyx"]
-        ,include_dirs=include_dirs
-        ,extra_objects=extra_objects
-        ,compiler_directives={
-         "embedsignature":True
-        ,"always_allow_kwords":True
-        ,"cdivision_warnings":True
-        ,"cdivision":True
-        ,"infer_types":True
-        ,"boundscheck":False
-        ,"overflowcheck":False
-        ,"wraparound":False})
-    ])
+    ext_modules = ext_modules,
+    zip_safe=False
 )

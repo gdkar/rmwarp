@@ -2,11 +2,11 @@ from libcpp cimport vector, map as std_map, unordered_map, deque
 from libcpp.string cimport string  as std_string
 
 import framer
-from . cimport respectrum
-from .respectrum cimport ReSpectrum
-from .refft cimport ReFFT
-from .basic cimport time_derivative_window
-from .basic cimport time_weighted_window
+cimport respectrum
+from respectrum cimport ReSpec
+from refft cimport ReFFT
+from basic cimport time_derivative_window
+from basic cimport time_weighted_window
 import numpy as np
 cimport numpy as np
 import scipy as sp, scipy.signal as ss
@@ -36,7 +36,7 @@ cdef class Vocoder:
         self.__max_frames = 64
         self.__time_ratio = 1.0
         self.spec = [self.fft.process(next(_ for _ in self.framer if _.std() > 0.125))]
-        self.__spec_acc = ReSpectrum(frame_size)
+        self.__spec_acc = ReSpec(frame_size)
         self.__time_in    = self.framer.next_sample - self.frame_size/2
         self.__time_origin= -self.__time_in
         self.__time_out   = 0
@@ -57,7 +57,7 @@ cdef class Vocoder:
         last_spec = self.spec[-1]
         prev_spec = self.spec[-2]
 
-        cdef ReSpectrum res = ReSpectrum(self.__frame_size)
+        cdef ReSpec res = ReSpec(self.__frame_size)
         res.size = self.__frame_size
         res.when = when
         res.M[::] = cubic_hermite(
@@ -83,14 +83,14 @@ cdef class Vocoder:
           , last_spec.when
             );
         return res
-    cpdef advance_spec(self, ReSpectrum spec):
+    cpdef advance_spec(self, ReSpec spec):
         x_dist = spec.when - self.spec_acc.when
         spec.Phi[::] = self.spec_acc.Phi + x_dist * (self.spec_acc.dPhi_dt + spec.dPhi_dt)*0.5
         spec.Phi[::] += self.unit * x_dist
         spec.Phi[::] = np.fmod(spec.Phi[::],np.pi*2)
         return spec
 
-    cpdef synthesize_frame(self, ReSpectrum spec):
+    cpdef synthesize_frame(self, ReSpec spec):
         res = self.fft.synthesize(spec)
         self.__accumulator[:len(res)][::] += res
         self.__windowAccumulator[:len(res)] += self.fft.h ** 2

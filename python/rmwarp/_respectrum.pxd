@@ -5,6 +5,7 @@ from libcpp.vector cimport vector
 cdef extern from "rmwarp/Simd.hpp" namespace "RMWarp::bs" nogil:
     cdef cppclass allocator[T]:
         pass
+
 cdef extern from "rmwarp/ReSpectrum.hpp" namespace "RMWarp" nogil:
     cdef cppclass ReSpectrum:
         ctypedef float value_type

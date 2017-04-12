@@ -39,32 +39,11 @@ cdef class ReFFT:
     def size(self): return self.m_d.size();
 
     @property
-    def epsilon(self): return self.m_d.epsilon()
-
-    @property
-    def lo_mul(self):return self.m_d.lo_mul()
-
-    @lo_mul.setter
-    def lo_mul(self,_mul):self.m_d.set_lo_mul(_mul)
-
-    @property
-    def hi_mul(self):return self.m_d.hi_mul()
-
-    @hi_mul.setter
-    def hi_mul(self,_mul):self.m_d.set_hi_mul(_mul)
-
-    @property
-    def bin_minimum(self):return self.m_d.bin_minimum()
-
-    @bin_minimum.setter
-    def bin_minimum(self,_mul):self.m_d.set_bin_minimum(_mul)
+    def epsilon(self): return self.m_d.m_epsilon
 
     @epsilon.setter
     def epsilon(self, float e):
-        self.m_d.set_epsilon(e)
-
-    def update_group_delay(self, ReSpec spec):
-        self.m_d.update_group_delay(spec.m_d)
+        self.m_d.m_epsilon = e
 
     def process(self, data, ReSpec spec = None, int64_t when = 0):
         cdef float[:] tmp = data

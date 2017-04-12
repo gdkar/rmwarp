@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rmwarp/Math.hpp"
+#include "rmwarp/sysutils.hpp"
 #include "rmwarp/Simd.hpp"
 #include "rmwarp/VectorOpsComplex.hpp"
 #include "rmwarp/TimeWeightedWindow.hpp"

@@ -1,10 +1,10 @@
 
 import framer
-from . cimport respectrum
+cimport respectrum
 #from rmspectrum import RMSpectrum
-from .respectrum cimport ReSpectrum
+from respectrum cimport ReSpec
 #from rmfft import RMFFT
-from .refft cimport ReFFT
+from refft cimport ReFFT
 import numpy as np
 cimport numpy as np
 import scipy as sp, scipy.signal as ss
@@ -14,7 +14,7 @@ cdef linear_interp(p0, p1, float x, float x_lo, float x_hi)
 cdef class Vocoder:
     cdef readonly list      spec
     cdef readonly ReFFT     fft
-    cdef readonly ReSpectrum __spec_acc
+    cdef readonly ReSpec    __spec_acc
     cdef readonly object    framer
     cdef readonly int       __frame_size
     cdef readonly int       __hop_size
@@ -29,5 +29,5 @@ cdef class Vocoder:
     cdef readonly np.ndarray __windowAccumulator
     cpdef analyze_frame(self);
     cpdef interpolate_spec(self, when)
-    cpdef advance_spec(self, ReSpectrum spec)
-    cpdef synthesize_frame(self,ReSpectrum spec)
+    cpdef advance_spec(self, ReSpec spec)
+    cpdef synthesize_frame(self,ReSpec spec)
