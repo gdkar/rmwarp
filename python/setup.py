@@ -47,7 +47,8 @@ ext_modules = cythonize([Extension(
     ,"infer_types":True
     ,"boundscheck":False
     ,"overflowcheck":False
-    ,"wraparound":True})
+    ,"wraparound":True}
+  , nthreads=6)
 
 include_dirs = cmake_rootdir.joinpath('rmwarp')
 

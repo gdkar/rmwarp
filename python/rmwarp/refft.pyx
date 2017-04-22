@@ -50,7 +50,7 @@ cdef class ReFFT:
         if spec is None:
             spec = ReSpec(self.size)
         self.m_d.process[floatp](&tmp[0],spec.m_d, when)
-        self.update_group_delay(spec)
+        spec.update_group_delay()
         return spec
 
     def inverse(self, _M, _Phi, float[:] dst = None):

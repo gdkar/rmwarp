@@ -4,194 +4,6 @@
 #include "ReSpectrum.hpp"
 
 using namespace RMWarp;
-
-
-ReSpectrum::pointer ReSpectrum::X_real() { return &X[0];}
-ReSpectrum::const_pointer ReSpectrum::X_real() const { return &X[0];}
-
-ReSpectrum::pointer ReSpectrum::X_imag() { return &X[spacing()];}
-ReSpectrum::const_pointer ReSpectrum::X_imag() const { return &X[spacing()];}
-
-ReSpectrum::pointer ReSpectrum::mag_data() { return &mag[0];}
-ReSpectrum::const_pointer ReSpectrum::mag_data() const { return &mag[0];}
-
-ReSpectrum::pointer ReSpectrum::M_data() { return &M[0];}
-ReSpectrum::const_pointer ReSpectrum::M_data() const { return &M[0];}
-
-ReSpectrum::pointer ReSpectrum::Phi_data() { return &Phi[0];}
-ReSpectrum::const_pointer ReSpectrum::Phi_data() const { return &Phi[0];}
-
-ReSpectrum::pointer ReSpectrum::dM_dt_data() { return &dM_dt[0];}
-ReSpectrum::const_pointer ReSpectrum::dM_dt_data() const { return &dM_dt[0];}
-
-ReSpectrum::pointer ReSpectrum::dM_dw_data() { return &dM_dw[0];}
-ReSpectrum::const_pointer ReSpectrum::dM_dw_data() const { return &dM_dw[0];}
-
-ReSpectrum::pointer ReSpectrum::dPhi_dt_data() { return &dPhi_dt[0];}
-ReSpectrum::const_pointer ReSpectrum::dPhi_dt_data() const { return &dPhi_dt[0];}
-
-ReSpectrum::pointer ReSpectrum::dPhi_dw_data() { return &dPhi_dw[0];}
-ReSpectrum::const_pointer ReSpectrum::dPhi_dw_data() const { return &dPhi_dw[0];}
-
-ReSpectrum::pointer ReSpectrum::d2Phi_dtdw_data() { return &d2Phi_dtdw[0];}
-ReSpectrum::const_pointer ReSpectrum::d2Phi_dtdw_data() const { return &d2Phi_dtdw[0];}
-ReSpectrum::pointer ReSpectrum::local_group_delay() { return &lgd[0];}
-ReSpectrum::pointer ReSpectrum::local_group_delay_weight() { return &lgd_weight[0];}
-ReSpectrum::pointer ReSpectrum::local_group_delay_acc      () { return &lgd_acc[0];}
-ReSpectrum::pointer ReSpectrum::local_time() { return &ltime[0];}
-
-ReSpectrum::const_pointer ReSpectrum::local_group_delay() const { return &lgd[0];}
-ReSpectrum::const_pointer ReSpectrum::local_group_delay_weight() const { return &lgd_weight[0];}
-ReSpectrum::const_pointer ReSpectrum::local_group_delay_acc() const { return &lgd_acc[0];}
-ReSpectrum::const_pointer ReSpectrum::local_time() const { return &ltime[0];}
-
-
-ReSpectrum::range_type ReSpectrum::X_real_range()
-{
-    return { X_real(), X_real() + coefficients()};}
-ReSpectrum::const_range_type ReSpectrum::X_real_range() const
-{
-    return { X_real(), X_real() + coefficients()};
-}
-
-ReSpectrum::range_type ReSpectrum::X_imag_range()
-{
-    return { X_imag(), X_imag() + coefficients()};}
-ReSpectrum::const_range_type ReSpectrum::X_imag_range() const
-{
-    return { X_imag(), X_imag() + coefficients()};}
-
-ReSpectrum::range_type ReSpectrum::mag_range()
-{
-    return { mag_data(), mag_data() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::mag_range() const
-{
-    return { mag_data(), mag_data() + coefficients()};
-}
-
-ReSpectrum::range_type ReSpectrum::M_range()
-{
-    return { M_data(), M_data() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::M_range() const
-{
-    return { M_data(), M_data() + coefficients()};
-}
-
-ReSpectrum::range_type ReSpectrum::Phi_range()
-{
-    return { Phi_data(), Phi_data() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::Phi_range() const
-{
-    return { Phi_data(), Phi_data() + coefficients()};
-}
-
-ReSpectrum::range_type ReSpectrum::dM_dt_range()
-{
-    return { dM_dt_data(), dM_dt_data() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::dM_dt_range() const
-{
-    return { dM_dt_data(), dM_dt_data() + coefficients()};
-}
-
-ReSpectrum::range_type ReSpectrum::dM_dw_range()
-{
-    return { dM_dw_data(), dM_dw_data() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::dM_dw_range() const
-{
-    return { dM_dw_data(), dM_dw_data() + coefficients()};
-}
-
-ReSpectrum::range_type ReSpectrum::dPhi_dt_range()
-{
-    return { dPhi_dt_data(), dPhi_dt_data() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::dPhi_dt_range() const
-{
-    return { dPhi_dt_data(), dPhi_dt_data() + coefficients()};
-}
-
-ReSpectrum::range_type ReSpectrum::dPhi_dw_range()
-{
-    return { dPhi_dw_data(), dPhi_dw_data() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::dPhi_dw_range() const
-{
-    return { dPhi_dw_data(), dPhi_dw_data() + coefficients()};
-}
-
-ReSpectrum::range_type ReSpectrum::d2Phi_dtdw_range()
-{
-    return { d2Phi_dtdw_data(), d2Phi_dtdw_data() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::d2Phi_dtdw_range() const
-{
-    return { d2Phi_dtdw_data(), d2Phi_dtdw_data() + coefficients()};
-}
-ReSpectrum::range_type ReSpectrum::local_group_delay_range()
-{
-    return { local_group_delay(), local_group_delay() + coefficients()};
-}
-ReSpectrum::range_type ReSpectrum::local_group_delay_weight_range()
-{
-    return { local_group_delay_weight(), local_group_delay_weight() + coefficients()};
-}
-ReSpectrum::range_type ReSpectrum::local_group_delay_acc_range()
-{
-    return { local_group_delay_acc(), local_group_delay_acc() + coefficients()};
-}
-
-ReSpectrum::range_type ReSpectrum::local_time_range()
-{
-    return { local_time(), local_time() + coefficients()};
-}
-
-ReSpectrum::const_range_type ReSpectrum::local_group_delay_range() const
-{
-    return { local_group_delay(), local_group_delay() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::local_group_delay_weight_range() const
-{
-    return { local_group_delay_weight(), local_group_delay_weight() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::local_group_delay_acc_range() const
-{
-    return { local_group_delay_acc(), local_group_delay_acc() + coefficients()};
-}
-ReSpectrum::const_range_type ReSpectrum::local_time_range() const
-{
-    return { local_time(), local_time() + coefficients()};
-}
-
-
-ReSpectrum::value_type ReSpectrum::epsilon() const
-{
-    return m_epsilon;
-}
-int ReSpectrum::size() const
-{
-    return m_size;
-}
-int ReSpectrum::coefficients() const
-{
-    return m_coef;
-}
-int ReSpectrum::spacing() const
-{
-    return m_spacing;
-}
-int64_t ReSpectrum::when() const
-{
-    return m_when;
-}
-void ReSpectrum::set_when(int64_t _when)
-{
-    m_when = _when;
-}
 void ReSpectrum::resize(int _size)
 {
     if(_size == size())
@@ -200,7 +12,7 @@ void ReSpectrum::resize(int _size)
     m_coef = m_size / 2 + 1;
     m_spacing = align_up(m_coef, item_alignment);
     X.resize(m_spacing * 2);
-    cexpr_for_each([sz=m_spacing](auto & item){item.resize(sz);}
+    cexpr_for_each([sz=size_type(m_spacing)](auto & item){if(item.size() != sz) item.resize(sz);}
         , mag
         , M
         , Phi
@@ -209,13 +21,76 @@ void ReSpectrum::resize(int _size)
         , dM_dt
         , dPhi_dt
         , d2Phi_dtdw
+        , d2Phi_dtdw_weight
+        , d2Phi_dtdw_acc
         , lgd
         , lgd_acc
         , lgd_weight
         , ltime);
 }
-void ReSpectrum::reset(int _size, int64_t _when)
+void ReSpectrum::updateGroupDelay()
 {
-    resize(_size);
-    set_when(_when);
+    auto _lgd     = local_group_delay();
+    auto _lgda    = local_group_delay_acc();
+    auto _lgdw    = local_group_delay_weight();
+    auto _ltime   = local_time();
+
+    auto _d2Phi   = d2Phi_dtdw_data();
+    auto _d2Phia  = d2Phi_dtdw_acc_data();
+    auto _mag     = mag_data();
+
+    auto _dPhi_dw = dPhi_dw_data();
+
+    auto fr = 0.9f;//bs::pow(10.0f, -40.0f/20.0f);
+    auto ep = bs::sqrt(epsilon * fr * bs::rec(1-fr));
+
+    bs::transform(_mag,_mag + m_coef, _lgdw, [ep](auto m) {
+        auto _res = bs::is_less(m,decltype(m)(ep));
+        return bs::if_zero_else_one(_res);
+    });
+
+    bs::transform(_lgdw,_lgdw + m_coef, _dPhi_dw, _lgda,bs::multiplies);
+    bs::transform(_lgdw,_lgdw+ m_coef, _d2Phi, _d2Phia, bs::multiplies);
+
+    std::partial_sum(_lgda,_lgda+m_coef,_lgda);
+    std::partial_sum(_lgdw,_lgdw+m_coef,_lgdw);
+    std::partial_sum(_d2Phia,_d2Phia, _d2Phia);
+
+    auto i = 0;
+    auto hi_bound = [](auto x){return (x * 1200)/1024;};
+    auto lo_bound = [](auto x){return (x * 860 )/1024;};
+    for(; i < m_coef - 8 && hi_bound(i) < i + 8; ++i) {
+        auto hi = i + 8;
+        auto lo = lo_bound(i);
+        auto _w = -bs::rec(_lgdw[hi] - _lgdw[lo] + epsilon);
+        _lgd[i] = (_lgda[hi] - _lgda[lo]) * _w;
+        _d2Phi[i] = (_d2Phia[hi] - _d2Phia[lo]) * _w;
+
+    }
+    for(; hi_bound(i) < m_coef; ++i) {
+        auto hi = hi_bound(i);
+        auto lo = lo_bound(i);
+        auto _w = -bs::rec(_lgdw[hi] - _lgdw[lo] + epsilon);
+        _lgd[i] = (_lgda[hi] - _lgda[lo]) * _w;
+        _d2Phi[i] = (_d2Phia[hi] - _d2Phia[lo])*_w;
+    }
+    {
+        auto hi = m_coef - 1;
+        auto hiw = _lgdw[hi];
+        auto hid = _lgda[hi];
+        auto hip = _d2Phia[hi];
+        for(; i < m_coef; ++i) {
+            auto lo = lo_bound(i);
+            auto _w = -bs::rec(hiw - _lgdw[lo] + epsilon);
+            _lgd[i]= (hid - _lgda[lo])*_w;
+            _d2Phi[i] = (hip - _d2Phia[lo])*_w;
+
+        }
+    }
+    bs::transform(_d2Phi,_d2Phi + m_coef, _d2Phia, [ep](auto m) {
+        auto _res = bs::is_less(bs::abs(m+decltype(m)(1)),decltype(m)(0.25));
+        return bs::if_one_else_zero(_res);
+    });
+    std::partial_sum(_d2Phia,_d2Phia, _d2Phia);
+    bs::transform(_lgd,_lgd+m_coef, _ltime, [w=float(when())](auto x){return x + w;});
 }

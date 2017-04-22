@@ -12,6 +12,9 @@ cdef class ReSpec:
     def resize(self, int size):
         self.m_d.resize(size)
 
+    def update_group_delay(self):
+        self.m_d.updateGroupDelay()
+
     @property
     def size(self):return self.m_d.size()
 

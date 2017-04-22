@@ -44,6 +44,7 @@ cdef class Vocoder:
         self.__accumulator = np.zeros((frame_size*4,),dtype=np.float32)
         self.__windowAccumulator = np.zeros((frame_size*4,),dtype=np.float32)
         self.analyze_frame()
+
     cpdef analyze_frame(self):
         f = next(self.framer)
         self.spec.append(self.fft.process(f, None,self.framer.next_sample - self.__frame_size//2))

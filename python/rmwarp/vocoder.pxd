@@ -14,9 +14,9 @@ cdef linear_interp(p0, p1, float x, float x_lo, float x_hi)
 cdef class Vocoder:
     cdef readonly list      spec
     cdef readonly ReFFT     fft
-    cdef readonly ReSpec    __spec_acc
+    cdef readonly ReSpec    ___spec_acc
     cdef readonly object    framer
-    cdef readonly int       __frame_size
+    cdef readonly int       _frame_size
     cdef readonly int       __hop_size
     cdef readonly int       __hop_size_out
     cdef readonly int       __max_frames

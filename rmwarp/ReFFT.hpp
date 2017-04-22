@@ -25,7 +25,7 @@ struct ReFFT {
     int m_coef{m_size ? (m_size / 2 + 1) : 0};
     int m_spacing{align_up(m_coef, item_alignment)};
 
-    float m_epsilon = std::numeric_limits<float>::epsilon();
+    float m_epsilon = std::pow(std::numeric_limits<float>::epsilon(),2.0f);
 
     allocator_type m_alloc{};
     vector_type m_h     {size_type(size()), m_alloc};  /// <- transform window

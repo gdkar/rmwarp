@@ -23,11 +23,11 @@ struct _wisdom_reg {
     }
     static std::once_flag _wisdom_once;
     _wisdom_reg(){
-        fftwf_init_threads();
-        fftwf_make_planner_thread_safe();
-        fftw_init_threads();
-        fftw_make_planner_thread_safe();
         std::call_once(_wisdom_once,[](){
+            fftwf_init_threads();
+            fftwf_make_planner_thread_safe();
+            fftw_init_threads();
+            fftw_make_planner_thread_safe();
             wisdom(fftwf_import_wisdom_from_file,fftw_import_wisdom_from_file,"rb");
         });
     }
@@ -65,14 +65,17 @@ void ReFFT::initPlans()
             , m_X_Th
             , m_X_TDh
               );
-        auto dims = fftwf_iodim{ m_size, 1, 1};
         auto _real = &m_split[0]; auto _imag = &m_split[m_spacing]; auto _time = &m_flat[0];
-
-        m_plan_r2c = fftwf_plan_guru_split_dft_r2c(
-            1, &dims, 0, nullptr, _time, _real, _imag, FFTW_ESTIMATE);
-        dims = fftwf_iodim{ m_size, 1, 1};
-        m_plan_c2r = fftwf_plan_guru_split_dft_c2r(
-            1, &dims, 0, nullptr, _real, _imag, _time, FFTW_ESTIMATE);
+        {
+            auto dims = fftwf_iodim{ m_size, 1, 1};
+            m_plan_r2c = fftwf_plan_guru_split_dft_r2c(
+                1, &dims, 0, nullptr, _time, _real, _imag, FFTW_ESTIMATE);
+        }
+        {
+            auto dims = fftwf_iodim{ m_size, 1, 1};
+            m_plan_c2r = fftwf_plan_guru_split_dft_c2r(
+                1, &dims, 0, nullptr, _real, _imag, _time, FFTW_ESTIMATE);
+        }
     }
 }
 /*static*/ ReFFT ReFFT::Kaiser(int _size, float alpha)
@@ -156,7 +159,6 @@ void ReFFT::_finish_process( ReSpectrum & dst, int64_t _when )
         bs::store(_X_r, dst.X_real() + i);
         bs::store(_X_i, dst.X_imag() + i);
         {
-//            auto _X_mag = bs::sqr(_X_i) + bs::sqr(_X_r);
             auto _X_mag = bs::hypot(_X_i,_X_r);
             bs::store(_X_mag, dst.mag_data() + i);
             bs::store(bs::log(_X_mag), dst.M_data() + i);
@@ -178,14 +180,14 @@ void ReFFT::_finish_process( ReSpectrum & dst, int64_t _when )
         auto _TDh_over_X    = std::get<0>(_cmul( reg(_real_TDh + i),reg(_imag_TDh + i) ,_X_r, _X_i ));
         auto _Th_Dh_over_X2 = std::get<0>(_pcmul(_Th_over_X,_Dh_over_X));
 
-        bs::store(_TDh_over_X - _Th_Dh_over_X2,&dst.d2Phi_dtdw[0] + i);    }
+        bs::store(_TDh_over_X - _Th_Dh_over_X2,&dst.d2Phi_dtdw[0] + i);
+    }
     for(auto i = 0; i < m_coef; ++i) {
         auto _X_r = *(_real + i), _X_i = *(_imag + i);
         bs::store(_X_r, dst.X_real() + i);
         bs::store(_X_i, dst.X_imag() + i);
         {
             auto _X_mag = bs::hypot(_X_i,_X_r);
-//            auto _X_mag = bs::sqr(_X_i) + bs::sqr(_X_r);
             bs::store(_X_mag, dst.mag_data() + i);
             bs::store(bs::log(_X_mag), dst.M_data() + i);
             bs::store(bs::atan2(_X_i,_X_r), dst.Phi_data() + i);

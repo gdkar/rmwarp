@@ -14,6 +14,31 @@ cdef extern from "rmwarp/ReSpectrum.hpp" namespace "RMWarp" nogil:
         ctypedef const float* const_pointer
         ctypedef allocator[value_type] allocator_type
         ctypedef vector[value_type,allocator[value_type]] vector_type
+
+        vector_type X
+        vector_type M
+        vector_type Phi
+        vector_type mag
+
+        vector_type dM_dt
+        vector_type dPhi_dt
+
+        vector_type dM_dw
+        vector_type dPhi_dw
+        vector_type d2Phi_dtdw
+
+        vector_type       lgd
+        vector_type       lgd_weight
+        vector_type       lgd_acc
+
+        vector_type       d2Phi_dtdw_weight
+        vector_type       d2Phi_dtdw_acc
+
+        vector_type       ltime
+
+        value_type  epsilon
+
+
         ReSpectrum()
         ReSpectrum(int)
         ReSpectrum(const ReSpectrum&)
@@ -36,6 +61,8 @@ cdef extern from "rmwarp/ReSpectrum.hpp" namespace "RMWarp" nogil:
         pointer dPhi_dw_data();
 
         pointer d2Phi_dtdw_data();
+        pointer d2Phi_dtdw_dtdw_weight_data()
+        pointer d2Phi_dtdw_acc_data()
 
         pointer local_group_delay();
         pointer local_group_delay_weight();
@@ -50,3 +77,4 @@ cdef extern from "rmwarp/ReSpectrum.hpp" namespace "RMWarp" nogil:
         void set_when(int64_t _when);
         void resize(int _size);
         void reset(int _size, int64_t _when);
+        void updateGroupDelay()
