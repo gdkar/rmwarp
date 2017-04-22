@@ -1,0 +1,41 @@
+## Copyright 2017 - NumScale SAS
+##
+## Distributed under the Boost Software License, Version 1.0.
+## (See accompanying file LICENSE.md or copy at http://boost.org/LICENSE_1_0.txt)
+##
+## -------------------------------------------------------------------------------------------------
+##
+## Export rmwarp includes directories and versions.
+##
+## You must invoke the `find_package` function to be able to reach this module.
+## Here is the list of exported variable:
+##
+##  rmwarp_FOUND               - 1 if found, 0 otherwise
+##  rmwarp_VERSION             - rmwarp full version
+##  rmwarp_MAJOR_VERSION       - rmwarp major version (M in M.m.S.s)
+##  rmwarp_MINOR_VERSION       - rmwarp minor version (m in M.m.S.s)
+##  rmwarp_SUBMINOR_VERSION    - rmwarp subminor version (S in M.m.S.s)
+##  rmwarp_SUBSUBMINOR_VERSION - rmwarp sub-subminor version (s in M.m.S.s)
+##
+##  rmwarp_INCLUDE_DIRS        - rmwarp include directories
+##
+## -------------------------------------------------------------------------------------------------
+
+## We do follow the same convention as FindBoost.cmake (unless for the `SUBSUBMINOR_VERSION` which
+## is not in the version scheme of traditionnal Boost)
+set(@PROJECT_NAME@_VERSION             @PROJECT_VERSION@)
+set(@PROJECT_NAME@_MAJOR_VERSION       @PROJECT_MAJOR_VERSION@)
+set(@PROJECT_NAME@_MINOR_VERSION       @PROJECT_MINOR_VERSION@)
+set(@PROJECT_NAME@_SUBMINOR_VERSION    @PROJECT_SUBMINOR_VERSION@)
+set(@PROJECT_NAME@_SUBSUBMINOR_VERSION @PROJECT_SUBSUBMINOR_VERSION@)
+
+##
+set(@PROJECT_NAME@_INCLUDE_DIRS        @CMAKE_INSTALL_PREFIX@/include/)
+
+##
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(@PROJECT_NAME@
+    FOUND_VAR     @PROJECT_NAME@_FOUND
+    REQUIRED_VARS @PROJECT_NAME@_INCLUDE_DIRS
+    VERSION_VAR   @PROJECT_NAME@_VERSION
+)
