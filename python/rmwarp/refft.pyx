@@ -27,6 +27,22 @@ cdef class ReFFT:
         self.m_d.setWindow(&tmp[0],&tmp[0] + len(tmp))
 
     @property
+    def h(self):
+        cdef float[:] _h = <float[:len(self)]>self.m_d.h_data()
+        return np.asarray(_h)
+    @property
+    def Dh(self):
+        cdef float[:] _h = <float[:len(self)]>self.m_d.Dh_data()
+        return np.asarray(_h)
+    @property
+    def Th(self):
+        cdef float[:] _h = <float[:len(self)]>self.m_d.Th_data()
+        return np.asarray(_h)
+    @property
+    def TDh(self):
+        cdef float[:] _h = <float[:len(self)]>self.m_d.TDh_data()
+        return np.asarray(_h)
+    @property
     def spacing(self):return self.m_d.spacing()
 
     @property
@@ -49,15 +65,15 @@ cdef class ReFFT:
         cdef float[:] tmp = data
         if spec is None:
             spec = ReSpec(self.size)
-        self.m_d.process[floatp](&tmp[0],spec.m_d, when)
+        self.m_d.process[floatp](&tmp[0],spec.m_d, when, True)
         spec.update_group_delay()
         return spec
 
-    def inverse(self, _M, _Phi, float[:] dst = None):
+    def inverse(self, _M, _Phi):
         cdef vector[float] tmp_M = _M
         cdef vector[float] tmp_Phi= _Phi
         cdef vector[float] tmp_out
         tmp_out.resize(self.m_d.size())
 
         self.m_d.inverse[floatp,floatp](&tmp_out[0],&tmp_M[0],&tmp_Phi[0])
-        return tmp_out
+        return np.asarray(tmp_out[::])

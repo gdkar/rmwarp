@@ -102,7 +102,7 @@ def run_example(_globals, frame_size = 2048, shaping=64.,hop_size = 8,window=Non
 
     def do_points(spec, slcount,slsize= 0,slspacing = 16, line_spacing=1,func=None):
         if func is None:
-            func = operator.attrgetter('dPhi_dw')
+            func = operator.attrgetter('local_group_delay')
         if not slsize:
             slsize = spec[0].coefficients //slcount
             slstride = slsize
@@ -119,7 +119,7 @@ def run_example(_globals, frame_size = 2048, shaping=64.,hop_size = 8,window=Non
 
     def do_avg_custom(spec, slcount,slsize= 0,slspacing = 16, line_spacing=1,func=None, avg = do_magnitude_avg, ref_lines = 0):
         if func is None:
-            func = operator.attrgetter('dPhi_dw')
+            func = operator.attrgetter('local_group_delay')
         if not slsize:
             slsize = spec[0].coefficients //slcount
             slstride = slsize
@@ -141,7 +141,7 @@ def run_example(_globals, frame_size = 2048, shaping=64.,hop_size = 8,window=Non
         if avg1 is None:
             avg1 = avg
         if func is None:
-            func = operator.attrgetter('dPhi_dw')
+            func = operator.attrgetter('local_group_delay')
         if not slsize:
             slsize = spec[0].coefficients //slcount
             slstride = slsize

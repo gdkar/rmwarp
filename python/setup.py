@@ -38,10 +38,12 @@ ext_modules = cythonize([Extension(
   , libraries=['rmwarp']
   , extra_compile_args=['-std=gnu++14','-g','-ggdb','-march=native']
   , library_dirs=[cmake_libobj.parent.as_posix()]
+  , gdb_debug=True
   ) for src in ext_srcs]
   , compiler_directives={
      "embedsignature":True
     ,"always_allow_kwords":True
+    ,"line_directives":True
     ,"cdivision_warnings":True
     ,"cdivision":True
     ,"infer_types":True
@@ -55,7 +57,7 @@ include_dirs = cmake_rootdir.joinpath('rmwarp')
 extra_objects = [cmake_libobj.as_posix()]
 setup(
     name='rmwarp',
-    version='0.0.0',
+    version='0.0.1',
     author="gabriel d. karpman",
     license='MIT',
     description='cython binding for librmwarp reassignment-method time stretch',

@@ -43,6 +43,7 @@ cdef extern from "ReFFT.hpp" namespace "RMWarp" nogil:
 #        ReFFT[It,A](It wbegin, It wend,It dt_begin, It dt_end, const A&)
 
         It setWindow[It](It wbegin, It wend)
+
         @staticmethod
         ReFFT Kaiser(int _size, float alpha)
         void _finish_process(ReSpectrum & dst, int64_t _when);
@@ -59,3 +60,7 @@ cdef extern from "ReFFT.hpp" namespace "RMWarp" nogil:
         int spacing()
         int size()
         int coefficients()
+        const float* h_data()
+        const float* Th_data()
+        const float* Dh_data()
+        const float* TDh_data()
