@@ -22,7 +22,8 @@ template<class T> constexpr const T T_PI_2 = T{0.5*M_PI};
 //constexpr decltype(auto) princarg(T a) { return bs::pedantic_(bs::rem)(a,bs::Twopi<T>());}
 
 template<class T>
-constexpr int ilog2(T t)
+constexpr std::enable_if_t<std::is_integral<T>::value,int>
+ilog2(T t)
 {
     return 64 - __builtin_clzl(uint64_t(t) - 1);
 }
@@ -44,7 +45,11 @@ template<>
 constexpr int ilog2(int8_t t)   { return ilog2(int32_t(t)); }
 
 template<typename T>
-T roundup ( T x) { return T{1} << ilog2(x); }
+constexpr std::enable_if_t<std::is_integral<T>::value,T>
+roundup ( T x)
+{
+    return T{1} << ilog2(x);
+}
 
 template<class T>
 constexpr T align_up(T x, T a) {

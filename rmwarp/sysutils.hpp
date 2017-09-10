@@ -50,7 +50,7 @@
 namespace RMWarp {
 
 template<class T>
-constexpr T princarg(T a) { return std::remainder(a, bs::Twopi<T>());}
+constexpr T princarg(T a) { return bs::rem(bs::nearbyint,a, bs::Twopi<T>());}
 
 template<class F, class... T>
 constexpr void cexpr_for_each(F && f, T &&... t)

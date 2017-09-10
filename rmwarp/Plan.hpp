@@ -60,9 +60,24 @@ struct FFTPlan {
         m_off_in  = val ? off_in : 0l;
         m_off_out = val ? off_out : 0l;
     }*/
-    constexpr FFTPlan() : m_d{0}, m_r2c{nullptr}, m_off_in{0},m_off_out{0}  {}
-    explicit constexpr FFTPlan(fftwf_plan _d, r2c_exec* fn, difference_type off_in, difference_type off_out) noexcept : m_d{_d}, m_r2c{fn}, m_off_in{off_in},m_off_out{off_out}  {}
-    explicit constexpr FFTPlan(fftwf_plan _d, c2c_exec* fn, difference_type off_in, difference_type off_out   ) noexcept : m_d{_d}, m_c2c{fn}, m_off_in{off_in},m_off_out{off_out}  {}
+    constexpr FFTPlan()
+    : m_d{0}, m_r2c{nullptr}, m_off_in{0},m_off_out{0}
+    {
+    }
+    explicit constexpr FFTPlan(fftwf_plan _d, r2c_exec* fn, difference_type off_in, difference_type off_out) noexcept
+    : m_d{_d}
+    , m_r2c{fn}
+    , m_off_in{off_in}
+    , m_off_out{off_out}
+    {
+    }
+    explicit constexpr FFTPlan(fftwf_plan _d, c2c_exec* fn, difference_type off_in, difference_type off_out   ) noexcept
+    : m_d{_d}
+    , m_c2c{fn}
+    , m_off_in{off_in}
+    ,m_off_out{off_out}
+    {
+    }
     constexpr FFTPlan(FFTPlan && o) noexcept
     : m_d{o.m_d}
     , m_r2c{o.m_r2c}
@@ -73,7 +88,11 @@ struct FFTPlan {
         o.m_r2c = nullptr;
         o.m_off_in = o.m_off_out = 0;
     }
-    FFTPlan &operator=(FFTPlan && o) noexcept { swap(*this, o); return *this;}
+    FFTPlan &operator=(FFTPlan && o) noexcept
+    {
+        swap(*this, o);
+        return *this;
+    }
    ~FFTPlan()
     {
         if(m_d) {
@@ -85,10 +104,10 @@ struct FFTPlan {
     friend void swap(FFTPlan &lhs, FFTPlan &rhs) noexcept
     {
         using std::swap;
-        swap(lhs.m_d,rhs.m_d);
-        swap(lhs.m_r2c,rhs.m_r2c);
-        swap(lhs.m_off_in,rhs.m_off_in);
-        swap(lhs.m_off_out,rhs.m_off_out);
+        swap(lhs.m_d,       rhs.m_d);
+        swap(lhs.m_r2c,     rhs.m_r2c);
+        swap(lhs.m_off_in,  rhs.m_off_in);
+        swap(lhs.m_off_out, rhs.m_off_out);
     }
     static FFTPlan dft_1d_r2c(int _n, float *_ti, float *_ro, float *_io)
     {
@@ -118,14 +137,36 @@ struct FFTPlan {
     void execute(float *_in, float *_out)
     {
         if(!m_d)
-            throw std::runtime_error("cannot execute unplanned FFTs.");
-
+            return;
+//            throw std::runtime_error("cannot execute unplanned FFTs.");
+        if(!_in || !_out)
+            return;
+//            throw std::runtime_error("you gonna segfault, dumbass!");
         if(m_off_out && !m_off_in) {
-            if(m_r2c) (*m_r2c)( m_d, _in, _out, _out + m_off_out);
+            if(m_r2c)
+                (*m_r2c)(
+                    m_d
+                  , _in
+                  , _out
+                  , _out + m_off_out
+                );
         }else if(m_off_in && !m_off_out) {
-            if(m_r2c) (*m_r2c)( m_d, _in, _in + m_off_in, _out);
+            if(m_r2c)
+                (*m_r2c)(
+                    m_d
+                  , _in
+                  , _in + m_off_in
+                  , _out
+                );
         }else{
-            if(m_c2c) (*m_c2c)( m_d, _in, _in + m_off_in, _out, _out + m_off_out);
+            if(m_c2c)
+                (*m_c2c)(
+                    m_d
+                  , _in
+                  , _in + m_off_in
+                  , _out
+                  , _out + m_off_out
+                );
         }
     }
     void execute()

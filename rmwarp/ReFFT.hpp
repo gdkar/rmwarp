@@ -26,10 +26,12 @@ struct ReFFT {
     int m_coef{m_size ? (m_size / 2 + 1) : 0};
     int m_spacing{align_up(m_coef, item_alignment)};
 
-    float m_epsilon = std::pow(10.0f, -80.0f/20.0f);//std::numeric_limits<float>::epsilon();
+    value_type m_epsilon = std::pow(10.0f, -80.0f/20.0f);//std::numeric_limits<float>::epsilon();
 
     allocator_type m_alloc{};
 
+    value_type          m_time_width{};
+    value_type          m_freq_width{};
     vector_type m_h     {size_type(size()), m_alloc};  /// <- transform window
     vector_type m_Dh    {size_type(size()), m_alloc};  /// <- time derivative of window
     vector_type m_Th    {size_type(size()), m_alloc};  /// <- time multiplied window
@@ -45,17 +47,21 @@ struct ReFFT {
 
     FFTPlan             m_plan_r2c{};
     FFTPlan             m_plan_c2r{};
+    void _finish_set_window();
+    void _finish_process(float *src, ReSpectrum & dst, int64_t _when);
 
-    void _finish_process(ReSpectrum & dst, int64_t _when);
     template<class A = allocator_type>
-    ReFFT(const A &al = allocator_type{}) : m_alloc{al} {}
-    ReFFT ( ReFFT && ) noexcept ;
-    ReFFT &operator = ( ReFFT && ) noexcept ;
-    void swap(ReFFT & o) noexcept;
+    ReFFT(const A &al = allocator_type{})
+    : m_alloc{al} {}
+
+    ReFFT ( ReFFT && ) noexcept = default;
+    ReFFT &operator = ( ReFFT && ) noexcept = default;
+
     void initPlans();
     template<class A = allocator_type>
     ReFFT ( int _size, const A& al = allocator_type{})
     : m_size{_size}, m_alloc(al){ if(_size) initPlans(); }
+
     template<class It>
     It setWindow(It wbegin, It wend)
     {
@@ -67,84 +73,34 @@ struct ReFFT {
             std::copy_n(wbegin,size(), m_h.begin());
             wbegin += wn;
         }
-        time_derivative_window(m_h.cbegin(),m_h.cend(),m_Dh.begin());
-        time_weighted_window(m_h.cbegin(),m_h.cend(),m_Th.begin());
-        time_weighted_window(m_Dh.cbegin(),m_Dh.cend(),m_TDh.begin());
+        _finish_set_window();
         return wbegin;
-    }
-    template<class It>
-    void setWindow(It wbegin, It wend, It dt_begin, It dt_end)
-    {
-        {
-            auto wn = std::distance(wbegin,wend);
-            if(wn < m_size) {
-            std::fill(m_h.begin(),m_h.begin() + (m_size-wn)/2,0.f);
-            std::fill(std::copy(wbegin,wend, m_h.begin() + (m_size-wn)/2),m_h.end(),0.f);
-            }else{
-                std::copy_n(wbegin,size(), m_h.begin());
-            }
-        }
-        {
-            auto dt_n = std::distance(dt_begin,dt_end);
-            if(dt_n < m_size) {
-                std::fill(m_Dh.begin(),m_Dh.begin() + (m_size-dt_n)/2,0.f);
-                std::fill(std::copy(dt_begin,dt_end, m_Dh.begin() + (m_size-dt_n)/2),m_Dh.end(),0.f);
-            }else{
-                std::copy_n(dt_begin, size(),m_Dh.begin());
-            }
-        }
-        time_weighted_window(m_h.cbegin(),m_h.cend(),m_Th.begin());
-        time_weighted_window(m_Dh.cbegin(),m_Dh.cend(),m_TDh.begin());
     }
     template<class It, class A = allocator_type>
     ReFFT( It wbegin, It wend, const A & al = allocator_type{})
-    :ReFFT(int(std::distance(wbegin,wend)), al)
+    : ReFFT(int(std::distance(wbegin,wend)), al)
     {
         setWindow(wbegin,wend);
     }
-    template<class It, class A = allocator_type>
-    ReFFT( It wbegin, It wend, It dt_begin, It dt_end, const A & al = allocator_type{})
-    :ReFFT(int(std::distance(wbegin,wend)), al)
-    {
-        setWindow(wbegin,wend,dt_begin,dt_end);
-    }
     static ReFFT Kaiser(int _size, float alpha);
-   ~ReFFT();
+    virtual ~ReFFT();
     void updateGroupDelay(ReSpectrum &dst);
 
     template<class It>
     void process( It src, It send, ReSpectrum & dst, int64_t when = 0, bool do_group_delay = false)
     {
-        {
-            auto do_window = [&](auto &w, auto &v) {
-                cutShift(&m_flat[0], src,send, w);
-                m_plan_r2c.execute(&m_flat[0], &v[0]);
-            };
-            do_window(m_h , m_X    );
-            do_window(m_Dh, m_X_Dh );
-            do_window(m_Th, m_X_Th );
-            do_window(m_TDh,m_X_TDh);
-        }
-        _finish_process(dst,when);
+        auto tsrc = static_cast<float*>(alloca(
+            m_size * sizeof(float))),
+             tsend = tsrc + m_size;
+        bs::fill(std::copy(src,send,tsrc),tsend,0.0f);
+        _finish_process(tsrc,dst,when);
         if(do_group_delay)
             dst.updateGroupDelay();
     }
     template<class It>
     void process( It src, ReSpectrum & dst, int64_t when = 0, bool do_group_delay=false)
     {
-        {
-            auto do_window = [&](auto &w, auto &v) {
-                cutShift(&m_flat[0], src, w);
-                m_plan_r2c.execute(&m_flat[0], &v[0]);
-            };
-            do_window(m_h , m_X    );
-            do_window(m_Dh, m_X_Dh );
-            do_window(m_Th, m_X_Th );
-            do_window(m_TDh,m_X_TDh);
-        }
-        _finish_process(dst,when);
-        if(do_group_delay)
-            dst.updateGroupDelay();
+        process(src,std::next(src,m_size),dst,when,do_group_delay);
     }
     template<class It, class iIt>
     void inverse( It dst, iIt _M, iIt _Phi)
@@ -186,13 +142,14 @@ struct ReFFT {
         m_plan_c2r.execute(&m_split[0], &m_flat[0]);
         std::copy(&m_flat[0],&m_flat[m_size], dst);
     }
-
     int spacing() const;
     int size() const;
     int coefficients() const;
-    const_pointer h_data() const;
-    const_pointer Dh_data() const;
-    const_pointer Th_data() const;
-    const_pointer TDh_data() const;
+    const_pointer   h_data() const;
+    const_pointer   Dh_data() const;
+    const_pointer   Th_data() const;
+    const_pointer   TDh_data() const;
+    value_type      time_width() const;
+    value_type      freq_width() const;
 };
 }

@@ -21,8 +21,10 @@ void ReSpectrum::resize(int _size)
         , dM_dt
         , dPhi_dt
         , d2Phi_dtdw
+        , d2M_dtdw
         , epsilon_weight
         , d2Phi_dtdw_acc
+        , d2M_dtdw_acc
         , lgd
         , lgd_acc
         , ltime);
@@ -37,6 +39,9 @@ void ReSpectrum::updateGroupDelay()
 
     auto _d2Phi   = d2Phi_dtdw_data();
     auto _d2Phia  = d2Phi_dtdw_acc_data();
+    auto _d2M   = d2M_dtdw_data();
+    auto _d2Ma  = d2M_dtdw_acc_data();
+
     auto _mag     = mag_data();
 
     auto _dPhi_dw = dPhi_dw_data();
@@ -52,10 +57,12 @@ void ReSpectrum::updateGroupDelay()
     std::copy(_dPhi_dw,     _dPhi_dw + m_coef,  _lgd);
     bs::transform(_ew,      _ew + m_coef,       _dPhi_dw, _lgda,    bs::multiplies);
     bs::transform(_ew,      _ew + m_coef,       _d2Phi,   _d2Phia,  bs::multiplies);
+    bs::transform(_ew,      _ew + m_coef,       _d2M,     _d2Ma,    bs::multiplies);
 
     std::partial_sum(_ew ,      _ew + m_coef,   _ew);
     std::partial_sum(_lgda,     _lgda+m_coef,   _lgda);
     std::partial_sum(_d2Phia,   _d2Phia+m_coef, _d2Phia);
+    std::partial_sum(_d2Ma,     _d2Ma+m_coef,   _d2Ma);
 
     bs::transform(_lgd,         _lgd+m_coef,    _ltime, [w=float(when())](auto x){return x + w;});
 }

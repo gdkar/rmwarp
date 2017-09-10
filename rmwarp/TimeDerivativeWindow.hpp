@@ -23,7 +23,7 @@ OutputIt time_derivative_window(InputIt wbegin, InputIt wend, OutputIt dst)
             auto norm_mul = float(2 * M_PI) / (n * n);
             using std::swap;
             for(auto i = 0; i < n; ++i) {
-                auto idx = ( i + base_idx ) % n;
+                auto idx = (i + base_idx ) % n;
                 auto mul =-(i + base_mul) * norm_mul;
                 time_r[idx] *= mul;
                 time_i[idx] *= mul;

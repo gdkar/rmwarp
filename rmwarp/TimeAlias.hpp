@@ -87,8 +87,8 @@ void cutShift(T *target,S *src,S *send, const W &window)
         send = src + targetSize;
 
     if(srcSize < hws) {
-        std::fill(target,tmid, 0);
-        std::fill(
+        bs::fill(target,tmid, 0);
+        bs::fill(
             bs::transform(
                 src
               , send
@@ -97,7 +97,7 @@ void cutShift(T *target,S *src,S *send, const W &window)
               , bs::multiplies)
           , tend, 0);
     }else if( srcSize < targetSize) {
-        std::fill(
+        bs::fill(
             bs::transform(
                 smid
               , send

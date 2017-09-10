@@ -41,8 +41,12 @@ public:
 
     vector_type dM_dw           { size_type(spacing()),     m_alloc };
     vector_type dPhi_dw         { size_type(spacing()),     m_alloc };
+
     vector_type d2Phi_dtdw      { size_type(spacing()),     m_alloc };
     vector_type d2Phi_dtdw_acc  { size_type(spacing()),     m_alloc };
+
+    vector_type d2M_dtdw        { size_type(spacing()),     m_alloc };
+    vector_type d2M_dtdw_acc    { size_type(spacing()),     m_alloc };
 
     vector_type lgd       { size_type(spacing()),     m_alloc };
     vector_type lgd_acc   { size_type(spacing()),     m_alloc };
@@ -89,9 +93,13 @@ public:
 
     pointer d2Phi_dtdw_data() { return &d2Phi_dtdw[0];}
     pointer d2Phi_dtdw_acc_data() { return &d2Phi_dtdw_acc[0];}
+    pointer d2M_dtdw_data() { return &d2M_dtdw[0];}
+    pointer d2M_dtdw_acc_data() { return &d2M_dtdw_acc[0];}
 
     const_pointer d2Phi_dtdw_data() const { return &d2Phi_dtdw[0];}
     const_pointer d2Phi_dtdw_acc_data() const { return &d2Phi_dtdw_acc[0];}
+    const_pointer d2M_dtdw_data() const { return &d2M_dtdw[0];}
+    const_pointer d2M_dtdw_acc_data() const { return &d2M_dtdw_acc[0];}
 
     pointer local_group_delay() { return &lgd[0];}
     pointer local_group_delay_acc() { return &lgd_acc[0];}

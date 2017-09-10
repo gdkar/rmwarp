@@ -61,6 +61,7 @@ void ReFFT::initPlans()
         m_plan_r2c = FFTPlan::dft_1d_r2c(m_size, _time, _real, _imag);
         m_plan_c2r = FFTPlan::dft_1d_c2r(m_size, _real, _imag, _time);
     }
+    _finish_set_window();
 }
 /*static*/ ReFFT ReFFT::Kaiser(int _size, float alpha)
 {
@@ -70,39 +71,42 @@ void ReFFT::initPlans()
     return ReFFT(win.cbegin(),win.cend());
 }
 
-ReFFT& ReFFT::operator=(ReFFT && o ) noexcept
-{
-    swap(o);
-    return *this;
-}
-void ReFFT::swap(ReFFT &o) noexcept
-{
-    using std::swap;
-    swap(m_size,o.m_size);
-    swap(m_coef,o.m_coef);
-    swap(m_spacing,o.m_spacing);
-    swap(m_h,o.m_h);
-    swap(m_Dh,o.m_Dh);
-    swap(m_Th,o.m_Th);
-    swap(m_TDh,o.m_TDh);
-    swap(m_flat,o.m_flat);
-    swap(m_split,o.m_split);
-    swap(m_X,o.m_X);
-    swap(m_X_Dh,o.m_X_Dh);
-    swap(m_X_Th,o.m_X_Th);
-    swap(m_X_TDh,o.m_X_TDh);
-    swap(m_plan_r2c,o.m_plan_r2c);
-    swap(m_plan_c2r,o.m_plan_c2r);
-}
-ReFFT::ReFFT(ReFFT && o ) noexcept
-: ReFFT(0)
-{
-    swap(o);
-}
 ReFFT::~ReFFT() = default;
 
-void ReFFT::_finish_process( ReSpectrum & dst, int64_t _when )
+void ReFFT::_finish_set_window()
 {
+    if(!m_size){
+        m_time_width = 0.0f;
+        m_freq_width = 0.0f;
+    }else{
+        time_weighted_window(m_h.cbegin(),m_h.cend(),m_Th.begin());
+        time_derivative_window(m_h.cbegin(),m_h.cend(),m_Dh.begin());
+        time_weighted_window(m_Dh.cbegin(),m_Dh.cend(),m_TDh.begin());
+
+        auto norm_ = bs::transform_reduce(&m_h[0],  &m_h[0] + m_size,  bs::sqr, value_type{}, bs::plus);
+        auto var_t_unorm = bs::transform_reduce(&m_Th[0], &m_Th[0] + m_size, bs::sqr, value_type{}, bs::plus);
+        auto var_w_unorm = bs::transform_reduce(&m_Dh[0], &m_Dh[0] + m_size, bs::sqr, value_type{}, bs::plus);
+
+        m_time_width = 2 * bs::sqrt(bs::Pi<value_type>() * var_t_unorm) * bs::rsqrt(norm_);
+        m_freq_width = 2 * bs::sqrt(bs::Pi<value_type>() * var_w_unorm) * bs::rsqrt(norm_);
+    }
+
+}
+void ReFFT::_finish_process(float *src, ReSpectrum & dst, int64_t _when )
+{
+    {
+        auto send = src + m_size;
+        auto do_window = [&](auto &w, auto &v) {
+            cutShift(&m_flat[0], src,send, w);
+            m_plan_r2c.execute(&m_flat[0], &v[0]);
+        };
+        do_window(m_h , m_X    );
+        do_window(m_Dh, m_X_Dh );
+        do_window(m_Th, m_X_Th );
+        do_window(m_TDh,m_X_TDh);
+    }
+//        _finish_process(dst,when);
+
     using reg = simd_reg<float>;
     using std::tie; using std::make_pair; using std::copy; using std::get;
 
@@ -118,8 +122,8 @@ void ReFFT::_finish_process( ReSpectrum & dst, int64_t _when )
         return make_pair(r0 * r1 - i0 * i1, r0 * i1 + r1 * i0);
         };
     auto _pcmul = [&](auto x0, auto x1) {
-        return _cmul(std::get<0>(x0),std::get<1>(x0),
-                     std::get<0>(x1),std::get<1>(x1));
+        return _cmul(get<0>(x0),get<1>(x0),
+                     get<0>(x1),get<1>(x1));
     };
 
     dst.reset(m_size, _when);
@@ -171,10 +175,11 @@ void ReFFT::_finish_process( ReSpectrum & dst, int64_t _when )
         bs::store(-get<1>(_Th_over_X), &dst.dM_dw  [0] + i);
         bs::store( get<0>(_Th_over_X), &dst.dPhi_dw[0] + i);
 
-        auto _TDh_over_X    = std::get<0>(_cmul( reg(_real_TDh + i),reg(_imag_TDh + i) ,_X_r, _X_i ));
-        auto _Th_Dh_over_X2 = std::get<0>(_pcmul(_Th_over_X,_Dh_over_X));
+        auto _TDh_over_X    = (_cmul( reg(_real_TDh + i),reg(_imag_TDh + i) ,_X_r, _X_i ));
+        auto _Th_Dh_over_X2 = (_pcmul(_Th_over_X,_Dh_over_X));
 
-        bs::store(_TDh_over_X - _Th_Dh_over_X2,&dst.d2Phi_dtdw[0] + i);
+        bs::store(get<0>(_TDh_over_X )  - get<1>(_Th_Dh_over_X2),&dst.d2Phi_dtdw[0] + i);
+        bs::store(-get<1>(_TDh_over_X ) + get<1>(_Th_Dh_over_X2),&dst.d2M_dtdw[0] + i);
     }
     for(; i < m_coef; ++i) {
         auto _X_r = *(_real + i), _X_i = *(_imag + i);
@@ -190,10 +195,11 @@ void ReFFT::_finish_process( ReSpectrum & dst, int64_t _when )
         bs::store(-get<1>(_Th_over_X), &dst.dM_dw  [0] + i);
         bs::store( get<0>(_Th_over_X), &dst.dPhi_dw[0] + i);
 
-        auto _TDh_over_X    = std::get<0>(_cmul( *(_real_TDh + i),*(_imag_TDh + i) ,_X_r, _X_i ));
-        auto _Th_Dh_over_X2 = std::get<0>(_pcmul(_Th_over_X,_Dh_over_X));
+        auto _TDh_over_X    = _cmul( *(_real_TDh + i),*(_imag_TDh + i) ,_X_r, _X_i );
+        auto _Th_Dh_over_X2 = _pcmul(_Th_over_X,_Dh_over_X);
 
-        bs::store(_TDh_over_X - _Th_Dh_over_X2,&dst.d2Phi_dtdw[0] + i);
+        bs::store(get<0>(_TDh_over_X )  - get<1>(_Th_Dh_over_X2),&dst.d2Phi_dtdw[0] + i);
+        bs::store(-get<1>(_TDh_over_X ) + get<1>(_Th_Dh_over_X2),&dst.d2M_dtdw[0] + i);
     }
 }
 int ReFFT::spacing() const
@@ -211,6 +217,14 @@ int ReFFT::size() const
 int ReFFT::coefficients() const
 {
     return m_coef;
+}
+ReFFT::value_type ReFFT::time_width() const
+{
+    return m_time_width;
+}
+ReFFT::value_type ReFFT::freq_width() const
+{
+    return m_freq_width;
 }
 void ReFFT::updateGroupDelay(ReSpectrum &spec)
 {
