@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 import av, numpy as np, scipy as sp, scipy.signal as ss, scipy.fftpack as sf
 cimport numpy as np
 import scipy.fftpack as fp
 import itertools as it
 
 cdef class Framer:
-    def __cinit__(self, filename, frame_size, hop_size = 0,layout=None,dtype=np.float32, pad = False):
+    def __init__(self, filename, frame_size, hop_size = 0,rate=0,layout=None,dtype=np.float32, pad = False, *args, **kwargs):
         if not hop_size:
             hop_size = frame_size / 4
 
@@ -18,7 +17,7 @@ cdef class Framer:
         if not layout:
             layout = self.s.layout
 
-        self.r = av.AudioResampler(format='fltp',layout=layout,rate=self.s.rate)
+        self.r = av.AudioResampler(format='fltp',layout=layout,rate=rate or self.s.rate)
         self.d = self.c.demux(self.s)
         while self.f.samples <  self.frame_size * 2:
             for frm in next(self.d).decode():
@@ -47,7 +46,7 @@ cdef class Framer:
 
     def __next__(self):
         return self.read()
-#    def next(self): return self.read()
+
     def __iter__(self):
         return self
 
@@ -95,7 +94,7 @@ cdef class Framer:
         return self.r.layout
 
 cdef class NpFramer(Framer):
-    def __cinit__(self,filename,frame_size, hop_size = 0, layout=None,transpose=True, dtype=None, pad = False):
+    def __init__(self,filename,frame_size, hop_size = 0, layout=None,transpose=True, dtype=None, pad = False, *args, **kwargs):
         super(NpFramer,self).__init__(filename,frame_size=frame_size,hop_size=hop_size,layout=layout, pad=pad)
         self.transpose = transpose
         self.dtype = dtype or np.float32
@@ -112,10 +111,10 @@ cdef class NpFramer(Framer):
         return x
 
 cdef class NpImageFramer(Framer):
-    def __cinit__(self, filename, frame_size, width, hop_size = 0, dtype=None, transpose=True, pad = False):
+    def __init__(self, filename, frame_size, width, hop_size = 0, dtype=None, transpose=True, pad = False, *args, **kwargs):
         if dtype is None:
             dtype = np.float32
-        super(NpImageFramer,self).__init__(filename,frame_size,hop_size,'mono, pad = pad')
+        super(NpImageFramer,self).__init__(filename,*args, frame_size=frame_size,hop_size=hop_size,layout='mono', pad = pad, **kwargs)
         self.image = np.ndarray((width,frame_size),dtype=dtype)
     cpdef read(self, frame_size = 0):
         x = super(NpImageFramer,self).read().to_ndarray()
@@ -128,8 +127,8 @@ cdef class NpImageFramer(Framer):
         return x
 
 cdef class Spectrogram(NpFramer):
-    def __cinit__(self, filename, frame_size, hop_size = 0, pad = False):
-        super(Spectrogram,self).__init__(filename,frame_size,hop_size, av.AudioLayout(1),False, pad=pad)
+    def __init__(self, filename, frame_size, hop_size = 0, pad = False):
+        super().__init__(filename,frame_size,hop_size, layout=av.AudioLayout(1),transpose=False, pad=pad)
         self.h = sf.fftshift(ss.hann(self.frame_size))
 
     cpdef read(self, frame_size = 0):
@@ -138,7 +137,7 @@ cdef class Spectrogram(NpFramer):
         return sf.fft(x)
 
 cdef class NpImageSpectrogram(Framer):
-    def __cinit__(self, filename, frame_size, width, hop_size = 0, dtype=None, transpose=True, pad = False):
+    def __init__(self, filename, frame_size, width, hop_size = 0, dtype=None, transpose=True, pad = False):
         if dtype is None:
             dtype = np.complex64
         super(NpImageSpectrogram,self).__init__(filename,frame_size,hop_size,'mono', pad=pad)
@@ -158,8 +157,8 @@ cdef class NpImageSpectrogram(Framer):
         return x
 
 cdef class RMSpectrogram(NpFramer):
-    def __cinit__(self, filename, frame_size,hop_size = 0):
-        super(RMSpectrogram,self).__init__(filename,frame_size,hop_size,av.AudioLayout(1), False)
+    def __init__(self, filename, frame_size,hop_size = 0):
+        super().__init__(filename,frame_size,hop_size,av.AudioLayout(1), False)
         self.h = sf.fftshift(ss.hann(self.frame_size))
         self.Th = self.h * sf.fftshift(
             np.linspace(
@@ -201,7 +200,7 @@ cdef class RMSpectrogram(NpFramer):
 
 
 cdef class DFCollection:
-    def __cinit__(self, funcs, filename, frame_size = 2048, hop_size = 256):
+    def __init__(self, funcs, filename, frame_size = 2048, hop_size = 256):
         self.funcs = funcs
         self.curves = [list() for func in funcs]
         self.spectrogram = Spectrogram(filename,frame_size,hop_size)

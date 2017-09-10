@@ -46,6 +46,7 @@ cdef extern from "ReFFT.hpp" namespace "RMWarp" nogil:
 
         @staticmethod
         ReFFT Kaiser(int _size, float alpha)
+
         void _finish_process(ReSpectrum & dst, int64_t _when);
 
         void swap(ReFFT & o);
@@ -64,3 +65,5 @@ cdef extern from "ReFFT.hpp" namespace "RMWarp" nogil:
         const float* Th_data()
         const float* Dh_data()
         const float* TDh_data()
+        value_type time_width()
+        value_type freq_width()

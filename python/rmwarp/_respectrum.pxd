@@ -29,6 +29,9 @@ cdef extern from "rmwarp/ReSpectrum.hpp" namespace "RMWarp" nogil:
         vector_type d2Phi_dtdw
         vector_type       d2Phi_dtdw_acc
 
+        vector_type d2M_dtdw
+        vector_type       d2M_dtdw_acc
+
         vector_type       epsilon_weight
 
         vector_type       lgd
@@ -64,6 +67,9 @@ cdef extern from "rmwarp/ReSpectrum.hpp" namespace "RMWarp" nogil:
 
         pointer d2Phi_dtdw_data();
         pointer d2Phi_dtdw_acc_data()
+
+        pointer d2M_dtdw_data();
+        pointer d2M_dtdw_acc_data()
 
         pointer local_group_delay();
         pointer local_group_delay_acc();

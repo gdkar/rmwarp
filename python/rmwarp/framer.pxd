@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import av, numpy as np, scipy as sp, scipy.signal as ss, scipy.fftpack as sf
 import scipy.fftpack as fp
 import itertools as it

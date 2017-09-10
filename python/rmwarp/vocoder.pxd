@@ -9,58 +9,73 @@ cimport libcpp.utility
 
 cimport cython.operator
 
-import framer
-cimport respectrum
+from rmwarp.framer cimport NpFramer, Framer, NpImageFramer, NpImageSpectrogram, Spectrogram
+#cimport respectrum
 
 #from rmspectrum import RMSpectrum
-from respectrum cimport ReSpec
+from .respectrum cimport ReSpec
+cimport rmwarp.interp
 #from rmfft import RMFFT
-from refft cimport ReFFT
+from .refft cimport ReFFT
 import numpy as np
 cimport numpy as np
 import scipy as sp, scipy.signal as ss
-cpdef cubic_hermite(p0,m0,p1,m1,float x, float x_lo, float x_hi)
-cpdef linear_interp(p0, p1, float x, float x_lo, float x_hi)
-cpdef np.ndarray windowed_diff(np.ndarray a, int w)
-cpdef np.ndarray binary_dilation(np.ndarray a, int w)
-cpdef np.ndarray binary_erosion(np.ndarray a, int w)
-cpdef np.ndarray binary_closing(np.ndarray a, int w)
-cpdef np.ndarray find_runs(np.ndarray a)
+
+#cpdef np.ndarray windowed_diff(np.ndarray a, int w)
+#cpdef np.ndarray binary_dilation(np.ndarray a, int w)
+#cpdef np.ndarray binary_erosion(np.ndarray a, int w)
+#cpdef np.ndarray binary_closing(np.ndarray a, int w)
+#cpdef np.ndarray find_runs(np.ndarray a, int base=*)
+#cpdef np.ndarray find_tagged_runs(np.ndarray a, int tag, int base=*)
+
+ctypedef np.float32_t float_type
+
+cdef class ResetSegment:
+    cdef int         lo
+    cdef int         hi
+    cdef int         tag_min
+    cdef int         tag_max
+    cdef np.ndarray  tag_data
+
 cdef class Vocoder:
     cdef object __weakref__
     cdef readonly list      spec
     cdef readonly ReFFT     fft
     cdef readonly object    framer
-    cdef readonly int       __frame_size
-    cdef readonly int       __resets
-    cdef readonly int       __hop_size
-    cdef readonly int       __hop_size_out
-    cdef readonly double    __shaping
-    cdef readonly int       __reset_granularity
-    cdef readonly int       __reset_width
-    cdef readonly int       __max_frames
-    cdef readonly double    __time_ratio
-    cdef readonly double    __time_out
-    cdef readonly double    __time_origin
-    cdef readonly int       __frame_index
-    cdef readonly np.ndarray  __unit
-    cdef readonly np.ndarray __Phi_table
-    cdef readonly np.ndarray __M_table
-    cdef readonly np.ndarray __lgd_table
-    cdef readonly np.ndarray __d2Phi_dtdw_table
-    cdef readonly list       __reset_list
-    cdef readonly list       __reset_segs
+    cdef readonly int           __frame_size
+    cdef readonly int           __resets
+    cdef readonly int           __hop_size
+    cdef readonly int           __hop_size_out
+    cdef readonly float_type    __shaping
+    cdef readonly int           __reset_granularity
+    cdef readonly int           __reset_width
+    cdef readonly int           __weight_width
+    cdef readonly int           __max_frames
+    cdef readonly double        __time_ratio
+    cdef readonly double        __time_out
+    cdef readonly double        __time_origin
+    cdef readonly int           __frame_index
+    cdef readonly float_type    __lgd_threshold
+    cdef readonly float_type    __lgd_threshold_accute
+    cdef readonly float_type    __d2Phi_threshold
+    cdef readonly float_type    __d2Phi_threshold_accute
 
-    cdef readonly np.ndarray __onset_table
-    cdef readonly np.ndarray __window
-    cdef readonly np.ndarray __accumulator
-    cdef readonly np.ndarray __windowAccumulator
+    cdef readonly np.ndarray    __unit
+    cdef readonly np.ndarray    __Phi_table
+    cdef readonly np.ndarray    __M_table
+    cdef readonly np.ndarray    __lgd_table
 
-    cdef readonly np.ndarray __reset_curr
-    cdef readonly np.ndarray __reset_view
-    cdef readonly np.ndarray __reset_last_idx
-    cdef readonly np.ndarray __reset_last_ref
-    cdef readonly int        __oldest_active
+    cdef readonly np.ndarray    __d2Phi_dtdw_table
+    cdef readonly list          __reset_list
+    cdef readonly np.ndarray    __reset_curr
+
+    cdef readonly list          __reset_segs
+    cdef readonly list          __reset_ring
+
+    cdef readonly np.ndarray    __onset_table
+    cdef readonly np.ndarray    __window
+    cdef readonly np.ndarray    __accumulator
+    cdef readonly np.ndarray    __windowAccumulator
 
     cpdef analyze_frame(self);
 #    cpdef synthesize_frame(self)

@@ -1,5 +1,5 @@
 from libcpp.vector cimport vector
-from _respectrum cimport ReSpectrum
+from ._respectrum cimport ReSpectrum
 from libc.stdint cimport int64_t
 cimport numpy as np
 import numpy as np, scipy as sp
@@ -91,6 +91,14 @@ cdef class ReSpec:
     @property
     def d2Phi_dtdw(self):
         cdef float[:] ref = <float[:self.coefficients]>(self.m_d.d2Phi_dtdw_data())
+        return np.asarray(ref)
+    @property
+    def d2M_dtdw_acc(self):
+        cdef float[:] ref = <float[:self.coefficients]>(self.m_d.d2M_dtdw_acc_data())
+        return np.asarray(ref)
+    @property
+    def d2M_dtdw(self):
+        cdef float[:] ref = <float[:self.coefficients]>(self.m_d.d2M_dtdw_data())
         return np.asarray(ref)
     @property
     def local_group_delay(self):

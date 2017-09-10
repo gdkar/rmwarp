@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import pyfftw as fftw, numpy as np, scipy as sp, scipy.signal as ss, scipy.special as ssp
 cimport numpy as np
 

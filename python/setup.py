@@ -38,7 +38,6 @@ ext_modules = cythonize([Extension(
   , libraries=['rmwarp']
   , extra_compile_args=['-std=gnu++14','-g','-ggdb','-march=native']
   , library_dirs=[cmake_libobj.parent.as_posix()]
-  , gdb_debug=True
   ) for src in ext_srcs]
   , compiler_directives={
      "embedsignature":True
@@ -46,8 +45,9 @@ ext_modules = cythonize([Extension(
     ,"line_directives":True
     ,"cdivision_warnings":True
     ,"cdivision":True
+    ,"language_level":3
     ,"infer_types":True
-    ,"boundscheck":False
+    ,"boundscheck":True
     ,"overflowcheck":False
     ,"wraparound":True}
   , nthreads=6)
