@@ -84,23 +84,20 @@ struct ReFFT {
     }
     static ReFFT Kaiser(int _size, float alpha);
     virtual ~ReFFT();
-    void updateGroupDelay(ReSpectrum &dst);
 
     template<class It>
-    void process( It src, It send, ReSpectrum & dst, int64_t when = 0, bool do_group_delay = false)
+    void process( It src, It send, ReSpectrum & dst, int64_t when = 0)
     {
         auto tsrc = static_cast<float*>(alloca(
             m_size * sizeof(float))),
              tsend = tsrc + m_size;
         bs::fill(std::copy(src,send,tsrc),tsend,0.0f);
         _finish_process(tsrc,dst,when);
-        if(do_group_delay)
-            dst.updateGroupDelay();
     }
     template<class It>
-    void process( It src, ReSpectrum & dst, int64_t when = 0, bool do_group_delay=false)
+    void process( It src, ReSpectrum & dst, int64_t when = 0)
     {
-        process(src,std::next(src,m_size),dst,when,do_group_delay);
+        process(src,std::next(src,m_size),dst,when);
     }
     template<class It, class iIt>
     void inverse( It dst, iIt _M, iIt _Phi)

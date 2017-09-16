@@ -21,8 +21,8 @@
     you must obtain a valid commercial licence before doing so.
 */
 
-#ifndef _RUBBERBAND_SYSUTILS_H_
-#define _RUBBERBAND_SYSUTILS_H_
+#ifndef _RMWARP_SYSUTILS_H_
+#define _RMWARP_SYSUTILS_H_
 
 #include <alloca.h>
 #include <cstdint>

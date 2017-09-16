@@ -157,8 +157,9 @@ void ReFFT::_finish_process(float *src, ReSpectrum & dst, int64_t _when )
     dst.epsilon = max_mag * m_epsilon;
 //    dst.epsilon = m_epsilon;
     auto _cinv = [e=bs::sqr(dst.epsilon)](auto r, auto i) {
-        auto n = bs::rec(bs::sqr(r) + bs::sqr(i) + e);//bs::Eps<float>());
-        return make_pair(r * n , -i * n);
+        auto n = bs::sqr(r) + bs::sqr(i);//bs::Eps<float>());
+        auto m = bs::if_zero_else(bs::is_less(n,e), bs::rec(n));
+        return make_pair(r * m , -i * m);
     };
     i = 0;
     for(; i < m_coef; i += w ) {
@@ -225,14 +226,4 @@ ReFFT::value_type ReFFT::time_width() const
 ReFFT::value_type ReFFT::freq_width() const
 {
     return m_freq_width;
-}
-void ReFFT::updateGroupDelay(ReSpectrum &spec)
-{
-    auto max_mag = bs::max_val(spec.mag_data(),spec.mag_data() + m_coef);
-    if(!max_mag)
-        max_mag = 1.0f;
-    spec.epsilon = max_mag * m_epsilon;
-
-//    spec.epsilon = m_epsilon;
-    spec.updateGroupDelay();
 }

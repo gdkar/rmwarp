@@ -22,47 +22,38 @@ void ReSpectrum::resize(int _size)
         , dPhi_dt
         , d2Phi_dtdw
         , d2M_dtdw
-        , epsilon_weight
-        , d2Phi_dtdw_acc
-        , d2M_dtdw_acc
-        , lgd
-        , lgd_acc
-        , ltime);
+        );
 }
-void ReSpectrum::updateGroupDelay()
+void ReSpectrum::unwrapFrom(const ReSpectrum &o)
 {
-    auto _ew      = weight_data();
+    if(!size() || (o.size() != size())) {
+        return;
+    }
+    using reg = simd_reg<float>;
+    using std::tie; using std::make_pair; using std::copy; using std::get;
+    constexpr auto w = int(simd_width<float>);
+    auto i = 0;
 
-    auto _lgd     = local_group_delay();
-    auto _lgda    = local_group_delay_acc();
-    auto _ltime   = local_time();
+    const auto _dp0 = dPhi_dt_data();
+    const auto _dp1 = o.dPhi_dt_data();
+    const auto _p0 = Phi_data();
+    const auto _p1 = o.Phi_data();
 
-    auto _d2Phi   = d2Phi_dtdw_data();
-    auto _d2Phia  = d2Phi_dtdw_acc_data();
-    auto _d2M   = d2M_dtdw_data();
-    auto _d2Ma  = d2M_dtdw_acc_data();
+    const auto _half_hop   = 0.5f*(when() - o.when());
+    const auto _twice_unit = 4 * bs::Pi<value_type>() / size();
 
-    auto _mag     = mag_data();
-
-    auto _dPhi_dw = dPhi_dw_data();
-
-    auto fr = 0.9f;//bs::pow(10.0f, -40.0f/20.0f);
-    auto ep = bs::sqrt(bs::sqr(epsilon) * fr * bs::rec(1-fr));
-
-    bs::transform(_mag,_mag + m_coef, _ew, [ep](auto m) {
-        auto _res = bs::is_less(m,decltype(m)(ep));
-        return bs::if_zero_else_one(_res);
-    });
-//    bs::transform(_dPhi_dw, _dPhi_dw + m_coef,  _lgd,     [](auto && x){return -x;});
-    std::copy(_dPhi_dw,     _dPhi_dw + m_coef,  _lgd);
-    bs::transform(_ew,      _ew + m_coef,       _dPhi_dw, _lgda,    bs::multiplies);
-    bs::transform(_ew,      _ew + m_coef,       _d2Phi,   _d2Phia,  bs::multiplies);
-    bs::transform(_ew,      _ew + m_coef,       _d2M,     _d2Ma,    bs::multiplies);
-
-    std::partial_sum(_ew ,      _ew + m_coef,   _ew);
-    std::partial_sum(_lgda,     _lgda+m_coef,   _lgda);
-    std::partial_sum(_d2Phia,   _d2Phia+m_coef, _d2Phia);
-    std::partial_sum(_d2Ma,     _d2Ma+m_coef,   _d2Ma);
-
-    bs::transform(_lgd,         _lgd+m_coef,    _ltime, [w=float(when())](auto x){return x + w;});
+    for(; i < m_coef; i += w) {
+        auto _unit = bs::enumerate<reg>(_twice_unit * i, _twice_unit);
+        auto _incr = (_unit - reg(_dp0 + i) - reg(_dp1 + i)) * _half_hop;
+        auto _next = reg(_p1 + i) + _incr;
+        auto _prev = reg(_p0 + i);
+        bs::store(_next + princarg(_prev-_next), _p0 + i);
+    }
+    for(; i < m_coef; ++i) {
+        auto _unit = _twice_unit * i;
+        auto _incr = (_unit - *(_dp0 + i) - *(_dp1 + i)) * _half_hop;
+        auto _next = *(_p1 + i) + _incr;
+        auto _prev = *(_p0 + i);
+        bs::store(_next + princarg(_prev-_next), _p0 + i);
+    }
 }

@@ -11,11 +11,11 @@
 namespace RMWarp {
 
 struct FFTPlan {
-    using value_type = fftwf_plan;
-    using reference  = value_type&;
-    using const_reference = const value_type&;
-    using difference_type = std::ptrdiff_t;
-    using size_type       = std::size_t;
+    using value_type        = fftwf_plan;
+    using reference         = value_type&;
+    using const_reference   = const value_type&;
+    using difference_type   = std::ptrdiff_t;
+    using size_type         = std::size_t;
 
     typedef void (r2c_exec)(const fftwf_plan, float*ri,float*ro,float*io);
     typedef void (c2c_exec)(const fftwf_plan, float*ri,float*ii,float*ro,float*io);
