@@ -54,8 +54,8 @@ cdef extern from "ReFFT.hpp" namespace "RMWarp" nogil:
         void setWindow[It](It wbegin, It wend, It dt_begin, It dt_end)
         void updateGroupDelay(ReSpectrum &dst);
 
-        void process[It]( It src, It send, ReSpectrum & dst, int64_t when , bool do_group_delay )
-        void process[It]( It src, ReSpectrum & dst, int64_t when , bool do_group_delay)
+        void process[It]( It src, It send, ReSpectrum & dst, int64_t when )
+        void process[It]( It src, ReSpectrum & dst, int64_t when )
         void inverse[It,iIt]( It dst, iIt _M, iIt _Phi)
         void inverseCepstral[I,O](O dst, I src)
         int spacing()

@@ -81,7 +81,7 @@ cdef class ReFFT:
         cdef float[:] tmp = data
         if spec is None:
             spec = ReSpec(self.size)
-        self.m_d.process[floatp](&tmp[0],spec.m_d, when, True)
+        self.m_d.process[floatp](&tmp[0],spec.m_d, when)
         spec.update_group_delay()
         return spec
 

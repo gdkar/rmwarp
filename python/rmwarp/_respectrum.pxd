@@ -27,20 +27,10 @@ cdef extern from "rmwarp/ReSpectrum.hpp" namespace "RMWarp" nogil:
         vector_type dPhi_dw
 
         vector_type d2Phi_dtdw
-        vector_type       d2Phi_dtdw_acc
 
         vector_type d2M_dtdw
-        vector_type       d2M_dtdw_acc
-
-        vector_type       epsilon_weight
-
-        vector_type       lgd
-        vector_type       lgd_acc
-
-        vector_type       ltime
 
         value_type  epsilon
-
 
         ReSpectrum()
         ReSpectrum(int)
@@ -63,17 +53,9 @@ cdef extern from "rmwarp/ReSpectrum.hpp" namespace "RMWarp" nogil:
 
         pointer dPhi_dw_data();
 
-        pointer weight_data()
-
         pointer d2Phi_dtdw_data();
-        pointer d2Phi_dtdw_acc_data()
 
         pointer d2M_dtdw_data();
-        pointer d2M_dtdw_acc_data()
-
-        pointer local_group_delay();
-        pointer local_group_delay_acc();
-        pointer local_time();
 
         int size() const;
         int coefficients() const;
@@ -82,4 +64,4 @@ cdef extern from "rmwarp/ReSpectrum.hpp" namespace "RMWarp" nogil:
         void set_when(int64_t _when);
         void resize(int _size);
         void reset(int _size, int64_t _when);
-        void updateGroupDelay()
+        void unwrapFrom(const ReSpectrum &)

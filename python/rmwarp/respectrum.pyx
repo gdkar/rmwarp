@@ -13,8 +13,9 @@ cdef class ReSpec:
     def resize(self, int size):
         self.m_d.resize(size)
 
-    def update_group_delay(self):
-        self.m_d.updateGroupDelay()
+    def unwrap_from(self, ReSpec other):
+        if other is not None:
+            self.m_d.unwrapFrom(other.m_d)
 
     @property
     def size(self):
@@ -85,30 +86,10 @@ cdef class ReSpec:
         cdef float[:] ref = <float[:self.coefficients]>(self.m_d.dM_dw_data())
         return np.asarray(ref)
     @property
-    def d2Phi_dtdw_acc(self):
-        cdef float[:] ref = <float[:self.coefficients]>(self.m_d.d2Phi_dtdw_acc_data())
-        return np.asarray(ref)
-    @property
     def d2Phi_dtdw(self):
         cdef float[:] ref = <float[:self.coefficients]>(self.m_d.d2Phi_dtdw_data())
         return np.asarray(ref)
     @property
-    def d2M_dtdw_acc(self):
-        cdef float[:] ref = <float[:self.coefficients]>(self.m_d.d2M_dtdw_acc_data())
-        return np.asarray(ref)
-    @property
     def d2M_dtdw(self):
         cdef float[:] ref = <float[:self.coefficients]>(self.m_d.d2M_dtdw_data())
-        return np.asarray(ref)
-    @property
-    def local_group_delay(self):
-        cdef float[:] ref = <float[:self.coefficients]>(self.m_d.local_group_delay())
-        return np.asarray(ref)
-    @property
-    def weight(self):
-        cdef float[:] ref =<float[:self.coefficients]>(self.m_d.weight_data())
-        return np.asarray(ref)
-    @property
-    def local_group_delay_acc(self):
-        cdef float[:] ref = <float[:self.coefficients]>(self.m_d.local_group_delay_acc())
         return np.asarray(ref)

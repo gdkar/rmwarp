@@ -41,8 +41,6 @@ ext_modules = cythonize([Extension(
   ) for src in ext_srcs]
   , compiler_directives={
      "embedsignature":True
-    ,"always_allow_kwords":True
-    ,"line_directives":True
     ,"cdivision_warnings":True
     ,"cdivision":True
     ,"language_level":3
