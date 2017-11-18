@@ -66,7 +66,6 @@ void ReFFT::initPlans()
 /*static*/ ReFFT ReFFT::Kaiser(int _size, float alpha)
 {
     auto win    = vector_type(_size, 0.0f);
-    auto win_dt = vector_type(_size, 0.0f);
     make_kaiser_window(win.begin(),win.end(), alpha);
     return ReFFT(win.cbegin(),win.cend());
 }
@@ -105,7 +104,6 @@ void ReFFT::_finish_process(float *src, ReSpectrum & dst, int64_t _when )
         do_window(m_Th, m_X_Th );
         do_window(m_TDh,m_X_TDh);
     }
-//        _finish_process(dst,when);
 
     using reg = simd_reg<float>;
     using std::tie; using std::make_pair; using std::copy; using std::get;
@@ -136,7 +134,7 @@ void ReFFT::_finish_process(float *src, ReSpectrum & dst, int64_t _when )
             auto _X_phi = bs::atan2(_X_i,_X_r);
             bs::store(_X_mag, dst.mag_data() + i);
             bs::store(bs::log(_X_mag), dst.M_data() + i);
-            bs::store(bs::if_zero_else(bs::is_nan(_X_phi),_X_phi), dst.Phi_data() + i);
+            bs::store(bs::if_else_zero(bs::is_not_nan(_X_phi),_X_phi), dst.Phi_data() + i);
         }
     }
     for(; i < m_coef; ++i) {
@@ -148,14 +146,13 @@ void ReFFT::_finish_process(float *src, ReSpectrum & dst, int64_t _when )
             auto _X_phi = bs::atan2(_X_i,_X_r);
             bs::store(_X_mag, dst.mag_data() + i);
             bs::store(bs::log(_X_mag), dst.M_data() + i);
-            bs::store(bs::if_zero_else(bs::is_nan(_X_phi),_X_phi), dst.Phi_data() + i);
+            bs::store(bs::if_else_zero(bs::is_not_nan(_X_phi),_X_phi), dst.Phi_data() + i);
         }
     }
     auto max_mag = bs::max_val(dst.mag_data(),dst.mag_data() + m_coef);
     if(!max_mag)
         max_mag = 1.0f;
     dst.epsilon = max_mag * m_epsilon;
-//    dst.epsilon = m_epsilon;
     auto _cinv = [e=bs::sqr(dst.epsilon)](auto r, auto i) {
         auto n = bs::sqr(r) + bs::sqr(i);//bs::Eps<float>());
         auto m = bs::if_zero_else(bs::is_less(n,e), bs::rec(n));

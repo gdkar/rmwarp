@@ -62,8 +62,7 @@ struct FFTPlan {
     }*/
     constexpr FFTPlan()
     : m_d{0}, m_r2c{nullptr}, m_off_in{0},m_off_out{0}
-    {
-    }
+    { }
     explicit constexpr FFTPlan(fftwf_plan _d, r2c_exec* fn, difference_type off_in, difference_type off_out) noexcept
     : m_d{_d}
     , m_r2c{fn}

@@ -52,7 +52,6 @@ cdef extern from "ReFFT.hpp" namespace "RMWarp" nogil:
         void swap(ReFFT & o);
         void initPlans();
         void setWindow[It](It wbegin, It wend, It dt_begin, It dt_end)
-        void updateGroupDelay(ReSpectrum &dst);
 
         void process[It]( It src, It send, ReSpectrum & dst, int64_t when )
         void process[It]( It src, ReSpectrum & dst, int64_t when )

@@ -25,7 +25,7 @@ template<class T>
 constexpr std::enable_if_t<std::is_integral<T>::value,int>
 ilog2(T t)
 {
-    return 64 - __builtin_clzl(uint64_t(t) - 1);
+    return 64 - __builtin_clzl(uint64_t(t) - 1u);
 }
 template<>
 constexpr int ilog2(uint32_t t) { return 32 - __builtin_clz(t-1u); }
@@ -43,6 +43,29 @@ template<>
 constexpr int ilog2(int16_t t)  { return ilog2(uint32_t(t)); }
 template<>
 constexpr int ilog2(int8_t t)   { return ilog2(int32_t(t)); }
+
+template<class T>
+constexpr std::enable_if_t<std::is_integral<T>::value,int>
+popcount(T t)
+{
+    return __builtin_popcountl(uint64_t(t));
+}
+template<>
+constexpr int popcount(uint32_t t) { return __builtin_popcount(t); }
+template<>
+constexpr int popcount(uint64_t t) { return __builtin_popcountl(t); }
+template<>
+constexpr int popcount(uint16_t t) { return popcount(uint32_t(t)); }
+template<>
+constexpr int popcount(uint8_t t)  { return popcount(uint32_t(t)); }
+template<>
+constexpr int popcount(int32_t t)  { return __builtin_popcount(t); }
+template<>
+constexpr int popcount(int64_t t)  { return __builtin_popcountl(t); }
+template<>
+constexpr int popcount(int16_t t)  { return popcount(uint32_t(t)); }
+template<>
+constexpr int popcount(int8_t t)   { return popcount(uint32_t(t)); }
 
 template<typename T>
 constexpr std::enable_if_t<std::is_integral<T>::value,T>

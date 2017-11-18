@@ -78,18 +78,18 @@ cdef class Vocoder:
             spec = self.spec.pop(0)
         else:
             spec = None
-        self.spec.append(self.fft.process(f, spec, when))
-        spec = self.spec[-1]
+        spec = self.fft.process(f, spec, when)
+        self.spec.append(spec)
         cdef int idx = self.__frame_index
         self.__frame_index += 1
-        cdef float pi2 = np.pi * 2
-        cdef float over_pi2 = pi2 ** -1
-
-        self.__M_table[idx]          = spec.M
-        windowed_weight = windowed_diff(spec.weight,self.__weight_width)
-        windowed_weight = np.where(windowed_weight, windowed_weight, 1.) ** -1
-        self.__d2Phi_dtdw_table[idx] = windowed_diff(spec.d2Phi_dtdw_acc, self.__weight_width) * windowed_weight
-        self.__lgd_table[idx]        = windowed_diff(spec.local_group_delay_acc,self.__weight_width) * windowed_weight/self.__hop_size
+        if len(self.spec) > 1:
+            spec.unwrap_from(self.spec[-2])
+        self.__Phi_table[idx] = spec.Phi
+        self.__M_table[idx]   = spec.M
+        #windowed_weight = windowed_diff(spec.weight,self.__weight_width)
+        #windowed_weight = np.where(windowed_weight, windowed_weight, 1.) ** -1
+        self.__d2Phi_dtdw_table[idx] = spec.d2Phi_dtdw
+        self.__lgd_table[idx]        = -spec.dPhi_dw/self.__hop_size
         self.__onset_table[idx] = (#~binary_closing(
 #            ~binary_closing(
                 (np.abs(self.__lgd_table[idx])<self.__lgd_threshold_accute)
@@ -124,13 +124,12 @@ cdef class Vocoder:
                 else:
                     break
         """
-        if idx <= 0:
-            self.__Phi_table[idx] = spec.Phi
-            correction = None
-        else:
-            dPhi = (self.unit - 0.5*(self.spec[-1].dPhi_dt + self.spec[-2].dPhi_dt)) * self.hop_size
-            unwrapped = self.__Phi_table[idx-1] + dPhi
-            self.__Phi_table[idx] = spec.Phi + pi2 * np.round((unwrapped - spec.Phi)*over_pi2)
+#        if idx <= 0:
+#            correction = None
+#        else:
+#            dPhi = (self.unit - 0.5*(self.spec[-1].dPhi_dt + self.spec[-2].dPhi_dt)) * self.hop_size
+#            unwrapped = self.__Phi_table[idx-1] + dPhi
+#            self.__Phi_table[idx] = spec.Phi + pi2 * np.round((unwrapped - spec.Phi)*over_pi2)
 
     def make_frame(self, double pts):
         cdef double frac = (pts - self.__time_origin) * self.rate / self.__hop_size

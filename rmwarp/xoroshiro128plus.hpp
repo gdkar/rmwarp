@@ -33,7 +33,7 @@ template<size_t N>
 struct xoroshiro128plus {
     using value_type = typename std::conditional<
         N>1ul,
-        bs::pack<uint64_t, N>;
+        bs::pack<uint64_t, N>,
         uint64_t>::type;
     value_type s0{bs::enumerate<value_type>(1,2)};
     value_type s1{bs::enumerate<value_type>(16,32)};

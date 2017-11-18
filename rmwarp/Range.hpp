@@ -21,11 +21,11 @@ namespace RMWarp {
 template<class Iter>
 struct Range {
     using size_type       = size_t;//typename std::iterator_traits<Iter>::size_type;
-    using difference_type = typename std::iterator_traits<Iter>::difference_type;
-    using value_type      = typename std::iterator_traits<Iter>::value_type;
-    using reference       = typename std::iterator_traits<Iter>::reference;
-    using pointer         = typename std::iterator_traits<Iter>::pointer;
     using iterator        = Iter;
+    using difference_type = typename std::iterator_traits<iterator>::difference_type;
+    using value_type      = typename std::iterator_traits<iterator>::value_type;
+    using reference       = typename std::iterator_traits<iterator>::reference;
+    using pointer         = typename std::iterator_traits<iterator>::pointer;
 
     iterator _begin{};
     iterator _end  {};

@@ -12,7 +12,11 @@ void ReSpectrum::resize(int _size)
     m_coef = m_size / 2 + 1;
     m_spacing = align_up(m_coef, item_alignment);
     X.resize(m_spacing * 2);
-    cexpr_for_each([sz=size_type(m_spacing)](auto & item){if(item.size() != sz) item.resize(sz);}
+    cexpr_for_each(
+          [sz=size_type(m_spacing)](auto & item){
+              if(item.size() != sz)
+                item.resize(sz);
+          }
         , mag
         , M
         , Phi
@@ -46,14 +50,18 @@ void ReSpectrum::unwrapFrom(const ReSpectrum &o)
         auto _unit = bs::enumerate<reg>(_twice_unit * i, _twice_unit);
         auto _incr = (_unit - reg(_dp0 + i) - reg(_dp1 + i)) * _half_hop;
         auto _next = reg(_p1 + i) + _incr;
+        _next = bs::if_zero_else(bs::is_nan(_next),_next);
         auto _prev = reg(_p0 + i);
-        bs::store(_next + princarg(_prev-_next), _p0 + i);
+        auto _gen  = _next + princarg(_prev-_next);
+        bs::store(bs::if_zero_else(bs::is_nan(_gen),_gen),_p0 + i);
     }
     for(; i < m_coef; ++i) {
         auto _unit = _twice_unit * i;
         auto _incr = (_unit - *(_dp0 + i) - *(_dp1 + i)) * _half_hop;
         auto _next = *(_p1 + i) + _incr;
+        _next = bs::if_zero_else(bs::is_nan(_next),_next);
         auto _prev = *(_p0 + i);
-        bs::store(_next + princarg(_prev-_next), _p0 + i);
+        auto _gen  = _next + princarg(_prev-_next);
+        bs::store(bs::if_zero_else(bs::is_nan(_gen),_gen),_p0 + i);
     }
 }

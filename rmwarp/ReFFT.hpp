@@ -67,7 +67,7 @@ struct ReFFT {
     {
         auto wn = std::distance(wbegin,wend);
         if(wn < m_size) {
-        std::fill(m_h.begin(),m_h.begin() + (m_size-wn)/2,0.f);
+            std::fill(m_h.begin(),m_h.begin() + (m_size-wn)/2,0.f);
             std::fill(std::copy(wbegin,wend, m_h.begin() + (m_size-wn)/2),m_h.end(),0.f);
         }else{
             std::copy_n(wbegin,size(), m_h.begin());
