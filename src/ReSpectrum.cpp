@@ -8,8 +8,8 @@ void ReSpectrum::resize(int _size)
 {
     if(_size == size())
         return;
-    m_size = _size;
-    m_coef = m_size / 2 + 1;
+    m_size    = _size;
+    m_coef    = m_size / 2 + 1;
     m_spacing = align_up(m_coef, item_alignment);
     X.resize(m_spacing * 2);
     cexpr_for_each(
@@ -30,9 +30,9 @@ void ReSpectrum::resize(int _size)
 }
 void ReSpectrum::unwrapFrom(const ReSpectrum &o)
 {
-    if(!size() || (o.size() != size())) {
+    if(!size() || (o.size() != size()))
         return;
-    }
+
     using reg = simd_reg<float>;
     using std::tie; using std::make_pair; using std::copy; using std::get;
     constexpr auto w = int(simd_width<float>);
@@ -40,8 +40,8 @@ void ReSpectrum::unwrapFrom(const ReSpectrum &o)
 
     const auto _dp0 = dPhi_dt_data();
     const auto _dp1 = o.dPhi_dt_data();
-    const auto _p0 = Phi_data();
-    const auto _p1 = o.Phi_data();
+    const auto _p0  = Phi_data();
+    const auto _p1  = o.Phi_data();
 
     const auto _half_hop   = 0.5f*(when() - o.when());
     const auto _twice_unit = 4 * bs::Pi<value_type>() / size();

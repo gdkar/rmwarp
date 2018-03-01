@@ -29,7 +29,13 @@ cdef class Vocoder:
         , d2Phi_threshold_accute = 0.125
         , lgd_threshold_accute=0.6
         , weight_width=16):
-        self.framer = NpFramer(filename, frame_size = frame_size, hop_size=hop_size, layout='mono',pad=True)
+        if isinstance(filename, NpFramer):
+            self.framer = filename
+            frame_size = self.framer.frame_size
+            hop_size   = self.framer.hop_size
+        else:
+            self.framer = NpFramer(filename, frame_size = frame_size, hop_size=hop_size, layout='mono',pad=True)
+
         self.__frame_size = frame_size
         self.__window = np.asarray(cxx_kaiser_window(self.frame_size, shaping)).astype(np.float32)
         self.fft = ReFFT(frame_size)

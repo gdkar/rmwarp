@@ -111,103 +111,136 @@ void ReFFT::_finish_process(float *src, ReSpectrum & dst, int64_t _when )
     constexpr auto w = int(simd_width<float>);
     auto i = 0;
 
-    const auto _real = &m_X[0], _imag    = &m_X[m_spacing]
-        ,_real_Dh = &m_X_Dh[0], _imag_Dh = &m_X_Dh[m_spacing]
-        ,_real_Th = &m_X_Th[0], _imag_Th = &m_X_Th[m_spacing]
-        ,_real_TDh = &m_X_TDh[0], _imag_TDh = &m_X_TDh[m_spacing]
+    const auto _real = &m_X[0],     _imag       = &m_X[m_spacing]
+        ,_real_Dh = &m_X_Dh[0],     _imag_Dh    = &m_X_Dh[m_spacing]
+        ,_real_Th = &m_X_Th[0],     _imag_Th    = &m_X_Th[m_spacing]
+        ,_real_TDh = &m_X_TDh[0],   _imag_TDh   = &m_X_TDh[m_spacing]
         ;
-    auto _cmul = [](auto r0, auto i0, auto r1, auto i1) {
+    constexpr auto _cmul = [](auto r0, auto i0, auto r1, auto i1) {
         return make_pair(r0 * r1 - i0 * i1, r0 * i1 + r1 * i0);
         };
-    auto _pcmul = [&](auto x0, auto x1) {
+    constexpr auto _pcmul = [&](auto x0, auto x1) {
         return _cmul(get<0>(x0),get<1>(x0),
                      get<0>(x1),get<1>(x1));
     };
 
     dst.reset(m_size, _when);
-    for(; i < m_coef; i += w ) {
-        auto _X_r = reg(_real + i), _X_i = reg(_imag + i);
-        bs::store(_X_r, dst.X_real() + i);
-        bs::store(_X_i, dst.X_imag() + i);
-        {
-            auto _X_mag = bs::hypot(_X_i,_X_r);
-            auto _X_phi = bs::atan2(_X_i,_X_r);
-            bs::store(_X_mag, dst.mag_data() + i);
-            bs::store(bs::log(_X_mag), dst.M_data() + i);
-            bs::store(bs::if_else_zero(bs::is_not_nan(_X_phi),_X_phi), dst.Phi_data() + i);
+    {
+        const auto _dst_X_real = dst.X_real()
+                  ,_dst_X_imag = dst.X_imag()
+                  ,_dst_mag_data = dst.mag_data()
+                  ,_dst_M_data = dst.M_data()
+                  ,_dst_Phi_data = dst.Phi_data();
+        for(; i < m_coef; i += w ) {
+            auto _X_r = reg(_real + i), _X_i = reg(_imag + i);
+            bs::store(_X_r, _dst_X_real + i);
+            bs::store(_X_i, _dst_X_imag + i);
+            {
+                auto _X_mag = bs::hypot(_X_i,_X_r);
+                auto _X_phi = bs::atan2(_X_i,_X_r);
+                bs::store(_X_mag, _dst_mag_data + i);
+                bs::store(bs::log(_X_mag), _dst_M_data + i);
+                bs::store(bs::if_else_zero(bs::is_not_nan(_X_phi),_X_phi), _dst_Phi_data + i);
+            }
+        }
+        for(; i < m_coef; ++i) {
+            auto _X_r = *(_real + i), _X_i = *(_imag + i);
+            bs::store(_X_r, _dst_X_real + i);
+            bs::store(_X_i, _dst_X_imag + i);
+            {
+                auto _X_mag = bs::hypot(_X_i,_X_r);
+                auto _X_phi = bs::atan2(_X_i,_X_r);
+                bs::store(_X_mag, _dst_mag_data + i);
+                bs::store(bs::log(_X_mag), _dst_M_data + i);
+                bs::store(bs::if_else_zero(bs::is_not_nan(_X_phi),_X_phi), _dst_Phi_data + i);
+            }
         }
     }
-    for(; i < m_coef; ++i) {
-        auto _X_r = *(_real + i), _X_i = *(_imag + i);
-        bs::store(_X_r, dst.X_real() + i);
-        bs::store(_X_i, dst.X_imag() + i);
-        {
-            auto _X_mag = bs::hypot(_X_i,_X_r);
-            auto _X_phi = bs::atan2(_X_i,_X_r);
-            bs::store(_X_mag, dst.mag_data() + i);
-            bs::store(bs::log(_X_mag), dst.M_data() + i);
-            bs::store(bs::if_else_zero(bs::is_not_nan(_X_phi),_X_phi), dst.Phi_data() + i);
-        }
+    if(m_epsilon > 0.0f) {
+        auto max_mag = bs::max_val(dst.mag_data(),dst.mag_data() + m_coef);
+        if(!max_mag)
+            max_mag = std::numeric_limits<float>::epsilon();
+        dst.epsilon = max_mag * m_epsilon;
+    } else {
+        dst.epsilon = 0.0f;
     }
-    auto max_mag = bs::max_val(dst.mag_data(),dst.mag_data() + m_coef);
-    if(!max_mag)
-        max_mag = 1.0f;
-    dst.epsilon = max_mag * m_epsilon;
     auto _cinv = [e=bs::sqr(dst.epsilon)](auto r, auto i) {
-        auto n = bs::sqr(r) + bs::sqr(i);//bs::Eps<float>());
-        auto m = bs::if_zero_else(bs::is_less(n,e), bs::rec(n));
+        auto n = bs::sqr(r) + bs::sqr(i);
+        auto m = bs::if_zero_else(bs::is_less_equal(n,e), bs::rec(n));
         return make_pair(r * m , -i * m);
     };
     i = 0;
-    for(; i < m_coef; i += w ) {
-        auto _X_r = reg(_real + i), _X_i = reg(_imag + i);
-        tie(_X_r, _X_i) = _cinv(_X_r,_X_i);
+    {
+        const auto   _dst_dM_dt     = &dst.dM_dt[0]
+                    ,_dst_dPhi_dt       = &dst.dPhi_dt[0]
+                    ,_dst_dM_dw         = &dst.dM_dw[0]
+                    ,_dst_dPhi_dw       = &dst.dPhi_dw[0]
+                    ,_dst_d2Phi_dtdw    = &dst.d2Phi_dtdw[0]
+                    ,_dst_d2M_dtdw      = &dst.d2M_dtdw[0];
 
-        auto _Dh_over_X = _cmul( reg(_real_Dh + i),reg(_imag_Dh + i) ,_X_r, _X_i );
+        for(; i < m_coef; i += w ) {
+            auto _X_r = reg(_real + i), _X_i = reg(_imag + i);
+            tie(_X_r, _X_i) = _cinv(_X_r,_X_i);
 
-        bs::store(get<0>(_Dh_over_X), &dst.dM_dt  [0] + i);
-        bs::store(get<1>(_Dh_over_X), &dst.dPhi_dt[0] + i);
+            auto _Dh_over_X = _cmul( reg(_real_Dh + i),reg(_imag_Dh + i) ,_X_r, _X_i );
 
-        auto _Th_over_X = _cmul( reg(_real_Th + i),reg(_imag_Th + i) ,_X_r, _X_i );
+            bs::store(get<0>(_Dh_over_X), _dst_dM_dt   + i);
+            bs::store(get<1>(_Dh_over_X), _dst_dPhi_dt + i);
 
-        bs::store(-get<1>(_Th_over_X), &dst.dM_dw  [0] + i);
-        bs::store( get<0>(_Th_over_X), &dst.dPhi_dw[0] + i);
+            auto _Th_over_X = _cmul( reg(_real_Th + i),reg(_imag_Th + i) ,_X_r, _X_i );
 
-        auto _TDh_over_X    = (_cmul( reg(_real_TDh + i),reg(_imag_TDh + i) ,_X_r, _X_i ));
-        auto _Th_Dh_over_X2 = (_pcmul(_Th_over_X,_Dh_over_X));
+            bs::store(-get<1>(_Th_over_X), _dst_dM_dw   + i);
+            bs::store( get<0>(_Th_over_X), _dst_dPhi_dw + i);
 
-        bs::store(get<0>(_TDh_over_X )  - get<1>(_Th_Dh_over_X2),&dst.d2Phi_dtdw[0] + i);
-        bs::store(-get<1>(_TDh_over_X ) + get<1>(_Th_Dh_over_X2),&dst.d2M_dtdw[0] + i);
-    }
-    for(; i < m_coef; ++i) {
-        auto _X_r = *(_real + i), _X_i = *(_imag + i);
-        tie(_X_r, _X_i) = _cinv(_X_r,_X_i);
+            auto _TDh_over_X    = (_cmul( reg(_real_TDh + i),reg(_imag_TDh + i) ,_X_r, _X_i ));
+            auto _Th_Dh_over_X2 = (_pcmul(_Th_over_X,_Dh_over_X));
 
-        auto _Dh_over_X = _cmul( *(_real_Dh + i),*(_imag_Dh + i) ,_X_r, _X_i );
+            bs::store(-std::get<1>(_TDh_over_X) + std::get<1>(_Th_Dh_over_X2), _dst_d2M_dtdw + i);
+            bs::store( std::get<0>(_TDh_over_X) - std::get<0>(_Th_Dh_over_X2), _dst_d2Phi_dtdw + i);
+        }
+        for(; i < m_coef; ++i) {
+            auto _X_r = *(_real + i), _X_i = *(_imag + i);
+            tie(_X_r, _X_i) = _cinv(_X_r,_X_i);
 
-        bs::store(get<0>(_Dh_over_X), &dst.dM_dt  [0] + i);
-        bs::store(get<1>(_Dh_over_X), &dst.dPhi_dt[0] + i);
+            auto _Dh_over_X = _cmul( *(_real_Dh + i),*(_imag_Dh + i) ,_X_r, _X_i );
 
-        auto _Th_over_X = _cmul( *(_real_Th + i),*(_imag_Th + i) ,_X_r, _X_i );
+            bs::store(get<0>(_Dh_over_X), _dst_dM_dt   + i);
+            bs::store(get<1>(_Dh_over_X), _dst_dPhi_dt + i);
 
-        bs::store(-get<1>(_Th_over_X), &dst.dM_dw  [0] + i);
-        bs::store( get<0>(_Th_over_X), &dst.dPhi_dw[0] + i);
+            auto _Th_over_X = _cmul( *(_real_Th + i),*(_imag_Th + i) ,_X_r, _X_i );
 
-        auto _TDh_over_X    = _cmul( *(_real_TDh + i),*(_imag_TDh + i) ,_X_r, _X_i );
-        auto _Th_Dh_over_X2 = _pcmul(_Th_over_X,_Dh_over_X);
+            bs::store(-get<1>(_Th_over_X), _dst_dM_dw   + i);
+            bs::store( get<0>(_Th_over_X), _dst_dPhi_dw + i);
 
-        bs::store(get<0>(_TDh_over_X )  - get<1>(_Th_Dh_over_X2),&dst.d2Phi_dtdw[0] + i);
-        bs::store(-get<1>(_TDh_over_X ) + get<1>(_Th_Dh_over_X2),&dst.d2M_dtdw[0] + i);
+            auto _TDh_over_X    = _cmul( *(_real_TDh + i),*(_imag_TDh + i) ,_X_r, _X_i );
+            auto _Th_Dh_over_X2 = _pcmul(_Th_over_X,_Dh_over_X);
+
+            bs::store(-std::get<1>(_TDh_over_X) + std::get<1>(_Th_Dh_over_X2), _dst_d2M_dtdw + i);
+            bs::store( std::get<0>(_TDh_over_X) - std::get<0>(_Th_Dh_over_X2), _dst_d2Phi_dtdw + i);
+        }
     }
 }
 int ReFFT::spacing() const
 {
     return m_spacing;
 }
-ReFFT::const_pointer ReFFT::h_data() const { return &m_h[0];}
-ReFFT::const_pointer ReFFT::Dh_data() const { return &m_Dh[0];}
-ReFFT::const_pointer ReFFT::Th_data() const { return &m_Th[0];}
-ReFFT::const_pointer ReFFT::TDh_data() const { return &m_TDh[0];}
+ReFFT::const_pointer ReFFT::h_data() const
+{
+    return &m_h[0];
+}
+ReFFT::const_pointer ReFFT::Dh_data() const
+{
+    return &m_Dh[0];
+}
+ReFFT::const_pointer ReFFT::Th_data() const
+{
+    return &m_Th[0];
+}
+ReFFT::const_pointer ReFFT::TDh_data() const
+{
+    return &m_TDh[0];
+}
+
 int ReFFT::size() const
 {
     return m_size;
