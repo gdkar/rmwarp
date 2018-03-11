@@ -6,7 +6,7 @@
 using namespace RMWarp;
 namespace detail {
 struct _wisdom_reg {
-/*    template<class F,class D>
+    template<class F,class D>
     static void wisdom(F && ffunc, D && dfunc, const char mode[]) {
         if(auto home = getenv("HOME")){
             char fn[256];
@@ -21,7 +21,7 @@ struct _wisdom_reg {
                 fclose(f);
             }
         }
-    }*/
+    }
     static std::once_flag _wisdom_once;
     _wisdom_reg(){
         std::call_once(_wisdom_once,[](){
@@ -29,12 +29,11 @@ struct _wisdom_reg {
             fftwf_make_planner_thread_safe();
             fftw_init_threads();
             fftw_make_planner_thread_safe();
-/*            wisdom(fftwf_import_wisdom_from_file,fftw_import_wisdom_from_file,"rb");*/
+            wisdom(fftwf_import_wisdom_from_file,fftw_import_wisdom_from_file,"rb");
         });
     }
-   ~_wisdom_reg() {/*
+   ~_wisdom_reg() {
         wisdom(fftwf_export_wisdom_to_file,fftw_export_wisdom_to_file,"wb");
-        */
     }
 };
 /*static*/ std::once_flag _wisdom_reg::_wisdom_once{};
@@ -85,17 +84,17 @@ void ReFFT::_finish_set_window()
 
 //        fftshift(m_h.begin(),m_h.end());
 //        rotate(m_h.begin(),m_h.begin() + m_coef, m_h.end());
-        fftshift(m_h.begin(),m_h.end(),m_Th.begin());
-        time_weighted_window(m_Th.cbegin(),m_Th.cend(),m_Th.begin());
-        ifftshift(m_Th.begin(),m_Th.end());
+//        fftshift(m_h.begin(),m_h.end(),m_Th.begin());
+        time_weighted_window(m_h.cbegin(),m_h.cend(),m_Th.begin());
+//        ifftshift(m_Th.begin(),m_Th.end());
 
-        fftshift(m_h.begin(),m_h.end(),m_Dh.begin());
-        time_derivative_window(m_Dh.cbegin(),m_Dh.cend(),m_Dh.begin());
-        ifftshift(m_Dh.begin(),m_Dh.end());
+//        fftshift(m_h.begin(),m_h.end(),m_Dh.begin());
+        time_derivative_window(m_h.cbegin(),m_h.cend(),m_Dh.begin());
+//        ifftshift(m_Dh.begin(),m_Dh.end());
 
-        fftshift(m_Dh.begin(),m_Dh.end(),m_TDh.begin());
-        time_weighted_window(m_TDh.cbegin(),m_TDh.cend(),m_TDh.begin());
-        ifftshift(m_TDh.begin(),m_TDh.end());
+//        fftshift(m_Dh.begin(),m_Dh.end(),m_TDh.begin());
+        time_weighted_window(m_Dh.cbegin(),m_Dh.cend(),m_TDh.begin());
+//        ifftshift(m_TDh.begin(),m_TDh.end());
 
         auto norm_       = bs::transform_reduce(&m_h[0],  &m_h[0] + m_size,  bs::sqr, value_type{}, bs::plus);
         auto var_t_unorm = bs::transform_reduce(&m_Th[0], &m_Th[0] + m_size, bs::sqr, value_type{}, bs::plus);
