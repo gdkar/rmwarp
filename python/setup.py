@@ -6,7 +6,6 @@ from distutils.ccompiler import new_compiler as _new_compiler, LinkError, Compil
 from distutils.command.clean import clean, log
 from distutils.core import Command
 from distutils.errors import DistutilsExecError
-from distutils.msvccompiler import MSVCCompiler
 from setuptools import setup, find_packages, Extension, Distribution
 from subprocess import Popen, PIPE, call, check_output
 from Cython.Distutils import build_ext
@@ -37,19 +36,22 @@ ext_modules = cythonize([Extension(
   , language='c++'
   , include_dirs=[ext_incdir.as_posix(),cmake_rootdir.as_posix()]
   , libraries=['rmwarp']
-  , extra_compile_args=['-std=gnu++14','-g','-ggdb','-march=native']
+  , extra_compile_args=['-std=gnu++14']
 #  , define_macros = [('NPY_NO_DEPRECATED_API','NPY_1_4_API_VERSION')]
   , library_dirs=[cmake_libobj.parent.as_posix()]
   ) for src in ext_srcs]
   , compiler_directives={
      "embedsignature":True
-    ,"cdivision_warnings":True
+    ,"cdivision_warnings":False
     ,"cdivision":True
+    ,'always_allow_keywords':True
+    ,'linetrace':True
     ,"language_level":3
     ,"infer_types":True
     ,"boundscheck":True
     ,"overflowcheck":False
-    ,"wraparound":True}
+    ,"wraparound":True
+        }
   , nthreads=6)
 
 include_dirs = cmake_rootdir.joinpath('rmwarp')
@@ -67,8 +69,15 @@ setup(
                 'Operating System :: POSIX :: BSD :: FreeBSD',
                 'Operating System :: POSIX :: Linux',
                 'Intended Audience :: Developers'],
+    setup_requires=[
+        'cython>=0.x',
+    ],
     cmdclass = { 'build_ext':build_ext},
     packages=find_packages(exclude=['build*']),
+    package_data = {
+        'rmwarp':['*.pxd'],
+
+    },
     ext_modules = ext_modules,
     zip_safe=False
 )
