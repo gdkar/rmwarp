@@ -24,12 +24,13 @@ cmake_builddir = cmake_rootdir.joinpath('build')
 print(cmake_builddir.as_posix())
 cmake_libobj= cmake_builddir.joinpath('lib','librmwarp.a')
 print(cmake_libobj.as_posix())
-assert cmake_libobj.exists()
+assert(cmake_libobj.exists())
 
 ext_srcdir = this_dir.joinpath('rmwarp')
 ext_srcs   = list(ext_srcdir.glob('*.pyx'))
 ext_incdir = cmake_rootdir.joinpath('rmwarp')
 print(ext_incdir.as_posix())
+
 ext_modules = cythonize([Extension(
     src.relative_to(this_dir).with_suffix('').as_posix().replace('/','.')
   , [src.as_posix()]
@@ -37,6 +38,7 @@ ext_modules = cythonize([Extension(
   , include_dirs=[ext_incdir.as_posix(),cmake_rootdir.as_posix()]
   , libraries=['rmwarp']
   , extra_compile_args=['-std=gnu++14','-g','-ggdb','-march=native']
+#  , define_macros = [('NPY_NO_DEPRECATED_API','NPY_1_4_API_VERSION')]
   , library_dirs=[cmake_libobj.parent.as_posix()]
   ) for src in ext_srcs]
   , compiler_directives={
