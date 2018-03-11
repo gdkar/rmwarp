@@ -14,11 +14,12 @@ void cutShift(const S *sbeg, T *dbeg, W wbeg, W wend)
     auto Ws = win_size - Wm;
 
     auto smid = sbeg + Wm;
-    auto wmid = wend - Wm;
+    auto wmid = wbeg + Wm;
     auto dmid = dbeg + Ws;
 
-    bs::transform(wmid,wend, sbeg,dmid,bs::multiplies);
-    bs::transform(wbeg,wmid, smid,dbeg,bs::multiplies);
+    bs::transform(wbeg,wmid, sbeg,dmid,bs::multiplies);
+    bs::transform(wmid,wend, smid,dbeg,bs::multiplies);
+//    bs::transform(wbeg,wmid, smid,dbeg,bs::multiplies);
 }
 template<typename T, typename S, typename W>
 void cutShift(const  S *sbeg,const S *send, T* dbeg, W wbeg, W wend)
@@ -29,21 +30,22 @@ void cutShift(const  S *sbeg,const S *send, T* dbeg, W wbeg, W wend)
     auto Ws = win_size - Wm;
 
     auto smid = sbeg + Wm;
-    auto wmid = wend - Wm;
+    auto wmid = wbeg + Wm;
     auto dmid = dbeg + Ws;
+    auto dend = dbeg + win_size;
 
     if(src_size <= Wm) {
         std::fill(dbeg, dmid, 0.f);
         bs::transform(wbeg, wbeg + src_size, sbeg, dmid, bs::multiplies);
-        std::fill(dmid + src_size, dmid + win_size, 0.f);
+        std::fill(dmid + src_size, dend, 0.f);
     } else if(src_size < win_size) {
         auto Wc = src_size - Wm;
-        bs::transform(wmid,wend,sbeg,dmid,bs::multiplies);
+        bs::transform(wbeg,wmid,sbeg,dmid,bs::multiplies);
         bs::transform(wbeg,wbeg + Wc, smid, dbeg, bs::multiplies);
         std::fill(dbeg + Wc, dbeg + Wm, 0.f);
     } else {
-        bs::transform(wmid,wend, sbeg,dmid,bs::multiplies);
-        bs::transform(wbeg,wmid, smid,dbeg,bs::multiplies);
+        bs::transform(wbeg,wmid, sbeg,dmid,bs::multiplies);
+        bs::transform(wmid,wend, smid,dbeg,bs::multiplies);
     }
 }
 template<class It, class Ot>

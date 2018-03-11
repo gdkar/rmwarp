@@ -8,16 +8,17 @@
 namespace RMWarp {
 
 template<class InputIt, class OutputIt>
-OutputIt time_weighted_window(InputIt wbegin, InputIt wend, OutputIt dst, float Fs = 1.f)
+OutputIt time_weighted_window(InputIt wbeg, InputIt wend, OutputIt dst, float Fs = 1.f)
 {
-    auto win_size = int(std::distance(wbegin,wend));
+    auto win_size = std::distance(wbeg,wend);
     auto c = -0.5f * (win_size - 1);
-    auto Fs_inv = 1 / Fs;
-    for(; wbegin != wend; (c += 1.0f))
-        *dst++ = *wbegin++ * c * Fs_inv;
+    auto Fs_inv = 1.f / Fs;
+    for(; wbeg != wend; c++) {
+        *(dst++) = *(wbeg++) * c * Fs_inv;
+    }
     return dst;
 }
-template<class T>
+/*template<class T>
 T * time_weighted_window( const T* wbegin, const T* wend, T* dst, float Fs = 1.f)
 {
     using reg = simd_reg<T>;
@@ -33,5 +34,5 @@ T * time_weighted_window( const T* wbegin, const T* wend, T* dst, float Fs = 1.f
     for(; i < win_size; ++i)
         bs::aligned_store(*(wbegin + i) * (sc + i) * Fs_inv, dst +i);
     return dst;
-}
+}*/
 }

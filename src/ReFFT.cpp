@@ -78,21 +78,24 @@ void ReFFT::_finish_set_window()
     if(!m_size){
         m_time_width = 0.0f;
         m_freq_width = 0.0f;
-    }else{
+    } else {
         using std::reverse;
+        using std::copy;
         using std::rotate;
 
 //        fftshift(m_h.begin(),m_h.end());
-//        rotate(m_h.begin(),m_h.begin() + m_coef, m_h.end());
 //        fftshift(m_h.begin(),m_h.end(),m_Th.begin());
+//        copy(m_h.cbegin(),m_h.cend(),m_Th.begin());
         time_weighted_window(m_h.cbegin(),m_h.cend(),m_Th.begin());
 //        ifftshift(m_Th.begin(),m_Th.end());
 
 //        fftshift(m_h.begin(),m_h.end(),m_Dh.begin());
+//        copy(m_h.cbegin(),m_h.cend(),m_Dh.begin());
         time_derivative_window(m_h.cbegin(),m_h.cend(),m_Dh.begin());
 //        ifftshift(m_Dh.begin(),m_Dh.end());
 
 //        fftshift(m_Dh.begin(),m_Dh.end(),m_TDh.begin());
+//        copy(m_Dh.cbegin(),m_Dh.cend(),m_TDh.begin());
         time_weighted_window(m_Dh.cbegin(),m_Dh.cend(),m_TDh.begin());
 //        ifftshift(m_TDh.begin(),m_TDh.end());
 
@@ -102,15 +105,24 @@ void ReFFT::_finish_set_window()
 
         m_time_width = 2 * bs::sqrt(bs::Pi<value_type>() * var_t_unorm) * bs::rsqrt(norm_);
         m_freq_width = 2 * bs::sqrt(bs::Pi<value_type>() * var_w_unorm) * bs::rsqrt(norm_);
+
+        reverse(m_h.begin(),m_h.end());
+        reverse(m_Th.begin(),m_Th.end());
+        reverse(m_Dh.begin(),m_Dh.end());
+        reverse(m_TDh.begin(),m_TDh.end());
+//        fftshift(m_h.begin(),m_h.end());
+//        fftshift(m_Th.begin(),m_Th.end());
+//        fftshift(m_Dh.begin(),m_Dh.end());
+//        fftshift(m_TDh.begin(),m_TDh.end());
     }
 
 }
 void ReFFT::_finish_process(float *sbeg , ReSpectrum & dst, int64_t _when )
 {
     {
-        auto send = sbeg + m_size;
+//        auto send = sbeg + m_size;
         auto do_window = [&](auto &w, auto &v) {
-            cutShift(sbeg, send, &m_flat[0], &w[0],&w[0] + w.size());
+            cutShift(sbeg, &m_flat[0], &w[0],&w[0] + w.size());
             m_plan_r2c.execute(&m_flat[0], &v[0]);
         };
         do_window(m_h , m_X    );
