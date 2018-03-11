@@ -3,6 +3,8 @@ from libcpp.vector cimport vector
 from libcpp cimport bool
 from cpython cimport bool as pybool
 #from _respectrum cimport ReSpectrum
+
+
 cdef extern from "Simd.hpp" namespace "RMWarp::bs" nogil:
     cdef cppclass allocator[T]:
         pass
@@ -19,6 +21,7 @@ cdef extern from "ReFFT.hpp" namespace "RMWarp" nogil:
         ctypedef const float* const_pointer
         ctypedef allocator[value_type] allocator_type
         ctypedef vector[value_type,allocator[value_type]] vector_type
+
         float m_epsilon
         allocator_type m_alloc
         vector_type m_h
@@ -60,6 +63,7 @@ cdef extern from "ReFFT.hpp" namespace "RMWarp" nogil:
         int spacing()
         int size()
         int coefficients()
+
         const float* h_data()
         const float* Th_data()
         const float* Dh_data()

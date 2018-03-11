@@ -2,6 +2,7 @@ from libc.stdint cimport int64_t, int32_t, int16_t
 from libc.stdint cimport *
 from libc.stddef cimport *
 from libcpp.vector cimport vector
+
 cdef extern from "rmwarp/Simd.hpp" namespace "RMWarp::bs" nogil:
     cdef cppclass allocator[T]:
         pass
