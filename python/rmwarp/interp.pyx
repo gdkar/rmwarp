@@ -1,4 +1,3 @@
-# cython: np_pythran=False
 
 import pyfftw as fftw, numpy as np, scipy as sp, scipy.signal as ss
 cimport numpy as np

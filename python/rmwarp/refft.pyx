@@ -1,5 +1,3 @@
-# cython: np_pythran=False
-
 
 from .respectrum cimport ReSpec
 from ._refft cimport ReFFT as _ReFFT
