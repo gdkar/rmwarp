@@ -1,8 +1,8 @@
 _Pragma("once")
 
-#include "rmwarp/Simd.hpp"
-#include "rmwarp/Math.hpp"
-#include "rmwarp/sysutils.hpp"
+#include "Simd.hpp"
+#include "Math.hpp"
+#include "sysutils.hpp"
 
 namespace RMWarp{
 

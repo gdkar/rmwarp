@@ -1,16 +1,20 @@
 #pragma once
 
+#include <cstdio>
+#include <iostream>
 #include <fftw3.h>
-#include "rmwarp/Math.hpp"
-#include "rmwarp/Simd.hpp"
-#include "rmwarp/Plan.hpp"
-#include "rmwarp/Allocators.hpp"
+#include "Math.hpp"
+#include "Simd.hpp"
+#include "Plan.hpp"
+#include "Allocators.hpp"
+#include "TimeAlias.hpp"
 
 namespace RMWarp {
 template<class InputIt, class OutputIt>
-OutputIt time_derivative_window(InputIt wbegin, InputIt wend, OutputIt dst, float Fs = 1.f)
+OutputIt time_derivative_window(InputIt wbeg, InputIt wend, OutputIt dst, float Fs = 1.f)
 {
-    auto win_size = int(std::distance(wbegin,wend));
+    auto win_size = std::distance(wbeg,wend);
+    std::cerr << "win_size = " << win_size << std::endl;
     if(!win_size)
         return dst;
     /*  fft(ifft(x) = n * x, under fftw3 rules, so scale is 1 / n
@@ -35,38 +39,39 @@ OutputIt time_derivative_window(InputIt wbegin, InputIt wend, OutputIt dst, floa
      *
      *      which is basically verbatim what we compute below.
      */
-    auto time_r = simd_vec<float>(wbegin,wend);
-    auto time_i = simd_vec<float>(win_size,0.f);
-    {
-        auto plan = FFTPlan::dft_1d_c2c(win_size, &time_r[0],&time_i[0],&time_r[0],&time_i[0]);
-        plan.execute();
-        {
-            auto Mw         = (win_size-1)/2;
-            auto first_half = (win_size+1)/2;
-            auto c          = (win_size % 2) ? 0.f : 0.5f;
+    auto _buff= simd_vec<float>();
+    _buff.resize(win_size * 4);
 
-            auto norm_mul = Fs / (win_size*win_size);
-            using std::swap;
-            auto i = 0;
-            for(; i < first_half; ++i) {
-                auto mul = - c * norm_mul;
-//                auto idx = (i) % n;
-                time_r[i] *= mul;
-                time_i[i] *= mul;
-                swap(time_r[i],time_i[i]);
-                c += 1.f;
+    const auto _time_r = &_buff[0];
+    const auto _time_i = _time_r + win_size;
+    const auto _freq_r = _time_i + win_size;
+    const auto _freq_i = _freq_r + win_size;
+
+    {
+        auto plan = FFTPlan::dft_1d_c2c(win_size, _time_r,_time_i,_freq_r,_freq_i);
+        std::copy(wbeg,wend,_time_r);
+        std::fill_n(_time_i,win_size,0.f);
+        plan.execute(_time_r,_freq_r);
+        {
+            auto Wm = (win_size+1)/2u;
+            auto c  = (win_size%2)?0.0f : 0.5f;
+            auto norm_mul = -Fs / (float(win_size));
+            std::cerr << "norm_mul = " << norm_mul << std::endl;
+            auto i  = decltype(win_size){0};
+            for(; i < Wm; ++i) {
+                auto mul = float(c + i) * norm_mul;
+                _time_r[i] = _freq_i[i] * mul;
+                _time_i[i] = _freq_r[i] * mul;
             }
             c -= win_size;
             for(; i < win_size; ++i) {
-                auto mul = - c * norm_mul;
-                time_r[i] *= mul;
-                time_i[i] *= mul;
-                swap(time_r[i],time_i[i]);
-                c += 1.f;
+                auto mul = float(c + i) * norm_mul;
+                _time_r[i] = _freq_i[i] * mul;
+                _time_i[i] = _freq_r[i] * mul;
             }
         }
-        plan.execute();
+        plan.execute(_time_r,_freq_r);
     }
-    return std::copy(time_r.cbegin(),time_r.cend(),dst);
+    return std::copy_n(_freq_i,win_size,dst);
 }
 }

@@ -1,15 +1,7 @@
 set( rmwarp_SOURCES ReFFT.cpp
                     ReSpectrum.cpp
-
                     )
 file(GLOB rmwarp_HEADERS ../rmwarp/*.hpp)
-
-#set( rmwarp_HEADERS ../rmwarp/*.hpp)
-#                    ../rmwarp/Math.hpp
-#                    ../rmwarp/ReSpectrum.hpp
-#                    ../rmwarp/ReFFT.hpp
-#                    ../rmwarp/TimeWeightedWindow.hpp
-#                    ../rmwarp/TimeDerivativeWindow.hpp )
 
 set( rmwarp_FILES ${rmwarp_SOURCES} ${rmwarp_HEADERS} )
 add_library( rmwarp-shared SHARED ${rmwarp_FILES} )

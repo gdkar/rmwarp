@@ -1,11 +1,12 @@
 #include <thread>
 #include <mutex>
-#include "rmwarp/ReFFT.hpp"
-#include "rmwarp/KaiserWindow.hpp"
+#include "ReFFT.hpp"
+#include "KaiserWindow.hpp"
+#include "TimeAlias.hpp"
 using namespace RMWarp;
 namespace detail {
 struct _wisdom_reg {
-    template<class F,class D>
+/*    template<class F,class D>
     static void wisdom(F && ffunc, D && dfunc, const char mode[]) {
         if(auto home = getenv("HOME")){
             char fn[256];
@@ -20,7 +21,7 @@ struct _wisdom_reg {
                 fclose(f);
             }
         }
-    }
+    }*/
     static std::once_flag _wisdom_once;
     _wisdom_reg(){
         std::call_once(_wisdom_once,[](){
@@ -28,11 +29,12 @@ struct _wisdom_reg {
             fftwf_make_planner_thread_safe();
             fftw_init_threads();
             fftw_make_planner_thread_safe();
-            wisdom(fftwf_import_wisdom_from_file,fftw_import_wisdom_from_file,"rb");
+/*            wisdom(fftwf_import_wisdom_from_file,fftw_import_wisdom_from_file,"rb");*/
         });
     }
-   ~_wisdom_reg() {
+   ~_wisdom_reg() {/*
         wisdom(fftwf_export_wisdom_to_file,fftw_export_wisdom_to_file,"wb");
+        */
     }
 };
 /*static*/ std::once_flag _wisdom_reg::_wisdom_once{};
@@ -81,35 +83,35 @@ void ReFFT::_finish_set_window()
         using std::reverse;
         using std::rotate;
 
-//        rotate(m_h.begin(),m_h.begin() + m_h.size() / 2, m_h.end());
-        time_weighted_window(m_h.cbegin(),m_h.cend(),m_Th.begin());
-        time_derivative_window(m_h.cbegin(),m_h.cend(),m_Dh.begin());
-        time_weighted_window(m_Dh.cbegin(),m_Dh.cend(),m_TDh.begin());
+//        fftshift(m_h.begin(),m_h.end());
+//        rotate(m_h.begin(),m_h.begin() + m_coef, m_h.end());
+        fftshift(m_h.begin(),m_h.end(),m_Th.begin());
+        time_weighted_window(m_Th.cbegin(),m_Th.cend(),m_Th.begin());
+        ifftshift(m_Th.begin(),m_Th.end());
 
-        auto norm_ = bs::transform_reduce(&m_h[0],  &m_h[0] + m_size,  bs::sqr, value_type{}, bs::plus);
+        fftshift(m_h.begin(),m_h.end(),m_Dh.begin());
+        time_derivative_window(m_Dh.cbegin(),m_Dh.cend(),m_Dh.begin());
+        ifftshift(m_Dh.begin(),m_Dh.end());
+
+        fftshift(m_Dh.begin(),m_Dh.end(),m_TDh.begin());
+        time_weighted_window(m_TDh.cbegin(),m_TDh.cend(),m_TDh.begin());
+        ifftshift(m_TDh.begin(),m_TDh.end());
+
+        auto norm_       = bs::transform_reduce(&m_h[0],  &m_h[0] + m_size,  bs::sqr, value_type{}, bs::plus);
         auto var_t_unorm = bs::transform_reduce(&m_Th[0], &m_Th[0] + m_size, bs::sqr, value_type{}, bs::plus);
         auto var_w_unorm = bs::transform_reduce(&m_Dh[0], &m_Dh[0] + m_size, bs::sqr, value_type{}, bs::plus);
-
-       cexpr_for_each([](auto & item) {
-            reverse(item.begin(),item.end());
-//            rotate(item.begin(), item.begin() + item.size() / 2, item.end());
-        }, m_h
-         , m_Th
-         , m_Dh
-         , m_TDh
-            );
 
         m_time_width = 2 * bs::sqrt(bs::Pi<value_type>() * var_t_unorm) * bs::rsqrt(norm_);
         m_freq_width = 2 * bs::sqrt(bs::Pi<value_type>() * var_w_unorm) * bs::rsqrt(norm_);
     }
 
 }
-void ReFFT::_finish_process(float *src, ReSpectrum & dst, int64_t _when )
+void ReFFT::_finish_process(float *sbeg , ReSpectrum & dst, int64_t _when )
 {
     {
-        auto send = src + m_size;
+        auto send = sbeg + m_size;
         auto do_window = [&](auto &w, auto &v) {
-            cutShift(&m_flat[0], src,send, w);
+            cutShift(sbeg, send, &m_flat[0], &w[0],&w[0] + w.size());
             m_plan_r2c.execute(&m_flat[0], &v[0]);
         };
         do_window(m_h , m_X    );
@@ -269,4 +271,32 @@ ReFFT::value_type ReFFT::time_width() const
 ReFFT::value_type ReFFT::freq_width() const
 {
     return m_freq_width;
+}
+void ReFFT::_process_inverse()
+{
+
+    const auto norm = bs::rec(float(size()));
+    auto _coef = m_coef;
+    constexpr auto w = int(simd_width<float>);
+    using reg = simd_reg<float>;
+    {
+        auto i =0;
+        const auto _split_r = &m_split[0];
+        const auto _split_i = _split_r + m_spacing;
+
+        for(; i < _coef; i += w) {
+            auto _mag = norm * bs::exp(reg(_split_r + i));
+            auto _i_r = bs::sincos(reg(_split_i+ i));
+            bs::store(std::get<0>(_i_r) * _mag, _split_i + i);
+            bs::store(std::get<1>(_i_r) * _mag, _split_r + i);
+        }
+        for(; i < _coef; i += 1) {
+            auto _mag = norm * bs::exp((_split_r[i]));
+            auto _i_r = bs::sincos(_split_i[i]);
+            bs::store(std::get<0>(_i_r) * _mag, _split_i + i);
+            bs::store(std::get<1>(_i_r) * _mag, _split_r + i);
+        }
+    }
+    m_plan_c2r.execute(&m_split[0], &m_flat[0]);
+
 }

@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <initializer_list>
 #include <limits>
-#include "rmwarp/Simd.hpp"
+#include "Simd.hpp"
 
 namespace RMWarp {
 

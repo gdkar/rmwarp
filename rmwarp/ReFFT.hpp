@@ -1,12 +1,12 @@
 #pragma once
 
-#include "rmwarp/Plan.hpp"
-#include "rmwarp/sysutils.hpp"
-#include "rmwarp/Simd.hpp"
-#include "rmwarp/TimeWeightedWindow.hpp"
-#include "rmwarp/TimeDerivativeWindow.hpp"
-#include "rmwarp/TimeAlias.hpp"
-#include "rmwarp/ReSpectrum.hpp"
+#include "Plan.hpp"
+#include "sysutils.hpp"
+#include "Simd.hpp"
+#include "TimeWeightedWindow.hpp"
+#include "TimeDerivativeWindow.hpp"
+#include "TimeAlias.hpp"
+#include "ReSpectrum.hpp"
 
 namespace RMWarp {
 
@@ -105,40 +105,15 @@ struct ReFFT {
     {
         process(src,std::next(src,m_size),dst,when);
     }
+    void _process_inverse();
     template<class It, class iIt>
     void inverse( It dst, iIt _M, iIt _Phi)
     {
-        auto _spacing = spacing();
-        auto _coef    = m_coef;
-        auto norm = 0.5f * bs::rec(float(size()));
+        const auto _coef    = m_coef;
+        std::copy_n(_M, _coef, &m_split[0]);
+        std::copy_n(_Phi,_coef,&m_split[0] + m_spacing);
 
-        constexpr auto w = int(simd_width<float>);
-        {
-            auto i =0;
-            const auto _split_r = &m_split[0];
-            const auto _split_i = _split_r + m_spacing;
-
-            for(; i < _coef; i += w) {
-                auto _mag = norm * bs::exp(reg(_M + i));
-                auto _i_r = bs::sincos(reg(_Phi + i));
-                bs::store(std::get<0>(_i_r) * _mag, _split_i + i);
-                bs::store(std::get<1>(_i_r) * _mag, _split_r + i);
-            }
-            for(; i < _coef; i += 1) {
-                auto _mag = norm * bs::exp(*(_M + i));
-                auto _i_r = bs::sincos(*(_Phi + i));
-                bs::store(std::get<0>(_i_r) * _mag, _split_i + i);
-                bs::store(std::get<1>(_i_r) * _mag, _split_r + i);
-            }
-        }
-        bs::transform(
-            _M
-           ,_M + _coef
-           , &m_X[0]
-           , [norm](auto x){
-                return norm * bs::exp(x);
-            });
-        m_plan_c2r.execute(&m_split[0], &m_flat[0]);
+        _process_inverse();
         std::rotate_copy(
             m_flat.cbegin()
            ,m_flat.cbegin() + (m_size/2)
