@@ -1,7 +1,6 @@
 # cython: np_pythran=False
 
-#from _refft cimport ReFFT
-#from _respectrum cimport ReSpectrum
+
 from .respectrum cimport ReSpec
 from ._refft cimport ReFFT as _ReFFT
 from libcpp.vector cimport vector
@@ -37,25 +36,29 @@ cdef class ReFFT:
 #        cdef float[:] tmp = win[:]
         if not self.m_d.size():
             self.m_d = _ReFFT(<int32_t>(len(win)))
-        cdef float[:] tmp = np.asarray(win,dtype=np.float32)
+        cdef float[::1] tmp = np.asarray(win,dtype=np.float32)
         self.m_d.setWindow(&tmp[0],&tmp[0] + len(tmp))
 
     @property
     def h(self):
         cdef float[:] _h = <float[:len(self)]>self.m_d.h_data()
         return np.asarray(_h)
+
     @property
     def Dh(self):
         cdef float[:] _h = <float[:len(self)]>self.m_d.Dh_data()
         return np.asarray(_h)
+
     @property
     def Th(self):
         cdef float[:] _h = <float[:len(self)]>self.m_d.Th_data()
         return np.asarray(_h)
+
     @property
     def TDh(self):
         cdef float[:] _h = <float[:len(self)]>self.m_d.TDh_data()
         return np.asarray(_h)
+
     @property
     def spacing(self):return self.m_d.spacing()
 
@@ -73,6 +76,7 @@ cdef class ReFFT:
 
     @property
     def freq_width(self): return self.m_d.freq_width();
+
     @property
     def epsilon(self): return self.m_d.m_epsilon
 

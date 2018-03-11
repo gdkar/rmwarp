@@ -5,6 +5,7 @@ from ._respectrum cimport ReSpectrum
 from libc.stdint cimport int64_t
 cimport numpy as np
 import numpy as np, scipy as sp
+
 cdef class ReSpec:
     def __cinit__(self, int size = 0):
         self.m_d = ReSpectrum(size)

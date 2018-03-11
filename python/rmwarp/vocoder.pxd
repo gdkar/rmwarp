@@ -10,23 +10,16 @@ cimport libcpp.utility
 cimport cython.operator
 
 from rmwarp.framer cimport NpFramer, Framer, NpImageFramer, NpImageSpectrogram, Spectrogram
-#cimport respectrum
 
-#from rmspectrum import RMSpectrum
+
+
 from .respectrum cimport ReSpec
 cimport rmwarp.interp
-#from rmfft import RMFFT
+
 from .refft cimport ReFFT
 import numpy as np
 cimport numpy as np
 import scipy as sp, scipy.signal as ss
-
-#cpdef np.ndarray windowed_diff(np.ndarray a, int w)
-#cpdef np.ndarray binary_dilation(np.ndarray a, int w)
-#cpdef np.ndarray binary_erosion(np.ndarray a, int w)
-#cpdef np.ndarray binary_closing(np.ndarray a, int w)
-#cpdef np.ndarray find_runs(np.ndarray a, int base=*)
-#cpdef np.ndarray find_tagged_runs(np.ndarray a, int tag, int base=*)
 
 ctypedef np.float32_t float_type
 
@@ -78,5 +71,3 @@ cdef class Vocoder:
     cdef readonly np.ndarray    __windowAccumulator
 
     cpdef analyze_frame(self);
-#    cpdef synthesize_frame(self)
-#    cpdef np.ndarray make_frame(self, double pts)

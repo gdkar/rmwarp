@@ -1,7 +1,6 @@
 cimport numpy as np, cython
 import numpy as np, scipy as sp
 
-
 cpdef cubic_hermite(
     p0, m0
   , p1, m1
