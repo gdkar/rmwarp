@@ -4,41 +4,6 @@
 #include "KaiserWindow.hpp"
 #include "TimeAlias.hpp"
 using namespace RMWarp;
-namespace detail {
-struct _wisdom_reg {
-    template<class F,class D>
-    static void wisdom(F && ffunc, D && dfunc, const char mode[]) {
-        if(auto home = getenv("HOME")){
-            char fn[256];
-            ::snprintf(fn, sizeof(fn), "%s/%s.f", home, ".rubberband.wisdom");
-            if(auto f = ::fopen(fn, mode)){
-                std::forward<F>(ffunc)(f);
-                fclose(f);
-            }
-            ::snprintf(fn, sizeof(fn), "%s/%s.d", home, ".rubberband.wisdom");
-            if(auto f = ::fopen(fn, mode)){
-                std::forward<D>(dfunc)(f);
-                fclose(f);
-            }
-        }
-    }
-    static std::once_flag _wisdom_once;
-    _wisdom_reg(){
-        std::call_once(_wisdom_once,[](){
-            fftwf_init_threads();
-            fftwf_make_planner_thread_safe();
-            fftw_init_threads();
-            fftw_make_planner_thread_safe();
-            wisdom(fftwf_import_wisdom_from_file,fftw_import_wisdom_from_file,"rb");
-        });
-    }
-   ~_wisdom_reg() {
-        wisdom(fftwf_export_wisdom_to_file,fftw_export_wisdom_to_file,"wb");
-    }
-};
-/*static*/ std::once_flag _wisdom_reg::_wisdom_once{};
-_wisdom_reg the_registrar{};
-}
 void ReFFT::initPlans()
 {
     if(m_size) {
@@ -309,5 +274,5 @@ void ReFFT::_process_inverse()
         }
     }
     m_plan_c2r.execute(&m_split[0], &m_flat[0]);
-
 }
+

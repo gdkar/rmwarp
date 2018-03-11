@@ -8,13 +8,12 @@
 namespace RMWarp {
 
 template<class InputIt, class OutputIt>
-OutputIt time_weighted_window(InputIt wbeg, InputIt wend, OutputIt dst, float Fs = 1.f)
+OutputIt time_weighted_window(InputIt wbeg, InputIt wend, OutputIt dst)
 {
     auto win_size = std::distance(wbeg,wend);
     auto c = -0.5f * (win_size - 1);
-    auto Fs_inv = 1.f / Fs;
     for(; wbeg != wend; c++) {
-        *(dst++) = *(wbeg++) * c * Fs_inv;
+        *(dst++) = *(wbeg++) * c;
     }
     return dst;
 }

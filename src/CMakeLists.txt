@@ -1,5 +1,6 @@
 set( rmwarp_SOURCES ReFFT.cpp
                     ReSpectrum.cpp
+                    FFTPlan.cpp
                     )
 file(GLOB rmwarp_HEADERS ../rmwarp/*.hpp)
 
