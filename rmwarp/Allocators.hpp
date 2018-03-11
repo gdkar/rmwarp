@@ -73,6 +73,7 @@ namespace ba = boost::alignment;
 using pts_type = std::int64_t;
 using sample_type = float;
 using time_type   = double;
+
 template<class T>
 using aligned_ptr = std::unique_ptr<T,bs::aligned_delete>;
 
@@ -121,6 +122,7 @@ struct simd_new_align : std::integral_constant<
       , ba::alignment_of<T>::value
         })
     > { };
+
 template<class T>
 constexpr auto simd_new_align_v = simd_new_align<T>::value;
 };
@@ -133,7 +135,8 @@ detail::up_if_object_t<T> make_aligned()
         throw std::bad_alloc();
     }
     try {
-        auto q = ::new(p) T(); return detail::up_if_object_t<T>(q);
+        auto q = ::new(p) T();
+        return detail::up_if_object_t<T>(q);
     } catch (...) {
         ba::aligned_free(p);
         throw;
@@ -175,7 +178,8 @@ detail::up_if_array_t<T> make_aligned(std::size_t n)
     using E = detail::up_element_t<T>;
     if(auto p = ba::aligned_alloc(detail::simd_new_align_v<E>, sizeof(E) * n)) {
         try {
-            auto q = ::new(p) E[n](); return detail::up_if_array_t<T>(q);
+            auto q = ::new(p) E[n]();
+            return detail::up_if_array_t<T>(q);
         } catch (...) {
             ba::aligned_free(p);
             throw;
@@ -198,85 +202,5 @@ typename detail::up_if_array<T>::type make_aligned_noinit(std::size_t n)
     }else{
         throw std::bad_alloc();
     }
-}
-template <typename T>
-T *allocate(size_t count)
-{
-    return static_cast<T*>(ba::aligned_alloc(detail::simd_new_align_v<T>, sizeof(T) * count));
-}
-template <typename T>
-T *allocate_and_zero(size_t count)
-{
-    auto it = allocate<T>(count);
-    std::fill_n(it, count, T{});
-    return it;
-}
-template <typename T>
-void deallocate(T *ptr)
-{
-    ba::aligned_free(ptr);
-}
-/// Reallocate preserving contents but leaving additional memory uninitialised
-template <typename T>
-T *reallocate(T *ptr, size_t oldcount, size_t count)
-{
-    if(!count) {
-        deallocate(ptr);
-        return nullptr;
-    } else if(!oldcount) {
-        return allocate<T>(count);
-    }else{
-        auto it = allocate<T>(count);
-        std::copy_n(ptr, std::min(count,oldcount), it);
-        deallocate(ptr);
-        return it;
-    }
-}
-/// Reallocate, zeroing all contents
-template <typename T>
-T *reallocate_and_zero(T *ptr, size_t oldcount, size_t count)
-{
-    if(count == oldcount)
-        return ptr;
-    deallocate(ptr);
-    return count ? allocate_and_zero<T>(count) : nullptr;
-}
-template<class T>
-void reallocate_and_zero(aligned_ptr<T[]> & ptr,size_t oldcount, size_t newcount)
-{
-    if(oldcount != newcount) {
-        ptr = make_aligned<T[]>(newcount);
-    }
-    std::fill_n(ptr.get(), newcount, T{});
-}
-template<class T>
-void reallocate_and_zero_extension(aligned_ptr<T[]> & ptr,size_t oldcount, size_t newcount)
-{
-    if(oldcount != newcount) {
-        auto tmp = make_aligned<T[]>(newcount);
-        if(auto copy_count = std::min(oldcount,newcount)) {
-            std::fill(std::move(ptr.get(), ptr.get() + oldcount, tmp.get()),tmp.get() + newcount, T{});
-        }else if(newcount) {
-            std::fill_n(ptr.get(), newcount, T{});
-        }
-        ptr.swap(tmp);
-    }
-}
-/// Reallocate preserving contents and zeroing any additional memory
-
-template <typename T>
-T *reallocate_and_zero_extension(T *ptr, size_t oldcount, size_t count)
-{
-    if(count == oldcount)
-        return ptr;
-    auto it = ptr;
-    if(count) {
-        it = allocate<T>(count);
-        auto mid = oldcount ? std::copy_n(ptr, std::min(oldcount,count), it) : it;
-        std::fill(mid, it + count, T{0});
-    }
-    if(ptr)
-        deallocate(ptr);
-    return it;
 }
 }

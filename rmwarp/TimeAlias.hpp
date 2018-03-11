@@ -58,6 +58,7 @@ void cutShiftAndFold(T *target, int targetSize,
     }
     v_multiply_and_add(target, src + win_off, win + win_off, window.size()- win_off);
 }
+
 template<typename T, typename S, typename W>
 void cutShift(T *target,S *src,const W &window)
 {

@@ -20,9 +20,10 @@ _Pragma("once")
 namespace RMWarp {
 template<class Iter>
 struct Range {
-    using size_type       = size_t;//typename std::iterator_traits<Iter>::size_type;
     using iterator        = Iter;
+    using const_iterator  = iterator;
     using difference_type = typename std::iterator_traits<iterator>::difference_type;
+    using size_type       = typename std::make_unsigned<difference_type>::type;
     using value_type      = typename std::iterator_traits<iterator>::value_type;
     using reference       = typename std::iterator_traits<iterator>::reference;
     using pointer         = typename std::iterator_traits<iterator>::pointer;
@@ -64,6 +65,10 @@ struct Range {
     constexpr const reference operator[](difference_type idx) const
     {
         return *std::next(begin(),idx);
+    }
+    constexpr const reference at(difference_type idx) const
+    {
+        return (idx >= 0 && idx < size()) ? *std::next(begin(),idx) : std::out_of_range{};
     }
     constexpr std::array<Range,2> split(size_type _size)
     {

@@ -209,9 +209,10 @@ void v_interleave(T *const dst,const T *const *const src,int channels,int count)
         for ( ; i + w < count; i += w ) {
             auto lo = reg(src[0] + i);
             auto hi = reg(src[1] + i);
-            auto in = bs::interleave(lo, hi);
-            bs::aligned_store(std::get<0>(in), dst + i * 2);
-            bs::aligned_store(std::get<1>(in), dst + i * 2 + w);
+//            auto in = bs::interleave(lo, hi);
+            bs::aligned_store(bs::interleave_first(lo,hi), dst + i * 2);
+            bs::aligned_store(bs::interleave_second(lo,hi), dst + i * 2 + w);
+//            bs::aligned_store(std::get<1>(in), dst + i * 2 + w);
         }
         for (i = 0; i < count; ++i) {
             for (int j = 0; j < 2; ++j)
@@ -246,9 +247,11 @@ void v_deinterleave(T *const *const dst,
         for ( ; i + w < count; i += w ) {
             auto lo = reg(src + 2 * i);
             auto hi = reg(src + 2 * i + w);
-            auto de = bs::deinterleave(lo, hi);
-            bs::aligned_store(std::get<0>(de), dst[0] + i);
-            bs::aligned_store(std::get<1>(de), dst[1] + i);
+            bs::aligned_store(bs::deinterleave_first(lo, hi), dst[0] + i);
+            bs::aligned_store(bs::deinterleave_second(lo, hi), dst[1] + i);
+//            auto de = bs::deinterleave(lo, hi);
+//            bs::aligned_store(std::get<0>(de), dst[0] + i);
+//            bs::aligned_store(std::get<1>(de), dst[1] + i);
         }
         for (i = 0; i < count; ++i) {
             for (int j = 0; j < 2; ++j)

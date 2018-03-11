@@ -78,6 +78,10 @@ void ReFFT::_finish_set_window()
         m_time_width = 0.0f;
         m_freq_width = 0.0f;
     }else{
+        using std::reverse;
+        using std::rotate;
+
+//        rotate(m_h.begin(),m_h.begin() + m_h.size() / 2, m_h.end());
         time_weighted_window(m_h.cbegin(),m_h.cend(),m_Th.begin());
         time_derivative_window(m_h.cbegin(),m_h.cend(),m_Dh.begin());
         time_weighted_window(m_Dh.cbegin(),m_Dh.cend(),m_TDh.begin());
@@ -85,6 +89,15 @@ void ReFFT::_finish_set_window()
         auto norm_ = bs::transform_reduce(&m_h[0],  &m_h[0] + m_size,  bs::sqr, value_type{}, bs::plus);
         auto var_t_unorm = bs::transform_reduce(&m_Th[0], &m_Th[0] + m_size, bs::sqr, value_type{}, bs::plus);
         auto var_w_unorm = bs::transform_reduce(&m_Dh[0], &m_Dh[0] + m_size, bs::sqr, value_type{}, bs::plus);
+
+       cexpr_for_each([](auto & item) {
+            reverse(item.begin(),item.end());
+//            rotate(item.begin(), item.begin() + item.size() / 2, item.end());
+        }, m_h
+         , m_Th
+         , m_Dh
+         , m_TDh
+            );
 
         m_time_width = 2 * bs::sqrt(bs::Pi<value_type>() * var_t_unorm) * bs::rsqrt(norm_);
         m_freq_width = 2 * bs::sqrt(bs::Pi<value_type>() * var_w_unorm) * bs::rsqrt(norm_);
@@ -171,7 +184,7 @@ void ReFFT::_finish_process(float *src, ReSpectrum & dst, int64_t _when )
     };
     i = 0;
     {
-        const auto   _dst_dM_dt     = &dst.dM_dt[0]
+        const auto   _dst_dM_dt         = &dst.dM_dt[0]
                     ,_dst_dPhi_dt       = &dst.dPhi_dt[0]
                     ,_dst_dM_dw         = &dst.dM_dw[0]
                     ,_dst_dPhi_dw       = &dst.dPhi_dw[0]

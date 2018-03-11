@@ -21,35 +21,7 @@ template<class T> constexpr const T T_PI_2 = T{0.5*M_PI};
 //template<class T>
 //constexpr decltype(auto) princarg(T a) { return bs::pedantic_(bs::rem)(a,bs::Twopi<T>());}
 
-template<class T>
-constexpr std::enable_if_t<std::is_integral<T>::value,int>
-ilog2(T t)
-{
-    return 64 - __builtin_clzl(uint64_t(t) - 1u);
-}
-template<>
-constexpr int ilog2(uint32_t t) { return 32 - __builtin_clz(t-1u); }
-template<>
-constexpr int ilog2(uint64_t t) { return 64 - __builtin_clzl(t-1u); }
-template<>
-constexpr int ilog2(uint16_t t) { return ilog2(uint32_t(t)); }
-template<>
-constexpr int ilog2(uint8_t t)  { return ilog2(uint32_t(t)); }
-template<>
-constexpr int ilog2(int32_t t)  { return 32 - __builtin_clz(t-1u); }
-template<>
-constexpr int ilog2(int64_t t)  { return 64 - __builtin_clzl(t-1u); }
-template<>
-constexpr int ilog2(int16_t t)  { return ilog2(uint32_t(t)); }
-template<>
-constexpr int ilog2(int8_t t)   { return ilog2(int32_t(t)); }
-
-template<class T>
-constexpr std::enable_if_t<std::is_integral<T>::value,int>
-popcount(T t)
-{
-    return __builtin_popcountl(uint64_t(t));
-}
+/*
 template<>
 constexpr int popcount(uint32_t t) { return __builtin_popcount(t); }
 template<>
@@ -66,12 +38,16 @@ template<>
 constexpr int popcount(int16_t t)  { return popcount(uint32_t(t)); }
 template<>
 constexpr int popcount(int8_t t)   { return popcount(uint32_t(t)); }
-
+*/
 template<typename T>
 constexpr std::enable_if_t<std::is_integral<T>::value,T>
 roundup ( T x)
 {
-    return T{1} << ilog2(x);
+    using U = typename std::make_unsigned<T>::type;
+    auto u = U{x} - U{1};
+    for(auto j = 1; j < std::numeric_limits<U>::digits(); j <<= 1)
+        u |= (u >> j);
+    return T{u + U{1}};
 }
 
 template<class T>

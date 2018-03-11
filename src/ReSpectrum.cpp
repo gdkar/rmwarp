@@ -43,12 +43,12 @@ void ReSpectrum::unwrapFrom(const ReSpectrum &o)
     const auto _p0  = Phi_data();
     const auto _p1  = o.Phi_data();
 
-    const auto _half_hop   = 0.5f*(when() - o.when());
-    const auto _twice_unit = 4 * bs::Pi<value_type>() / size();
+    const auto _base_hop   = (when() - o.when());
+    const auto _base_unit = 2 * bs::Pi<value_type>() / size();
 
     for(; i < m_coef; i += w) {
-        auto _unit = bs::enumerate<reg>(_twice_unit * i, _twice_unit);
-        auto _incr = (_unit - reg(_dp0 + i) - reg(_dp1 + i)) * _half_hop;
+        auto _unit = bs::enumerate<reg>(i) * _base_unit;
+        auto _incr = (_unit + (reg(_dp0 + i) + reg(_dp1 + i)) * 0.5f) * _base_hop;
         auto _next = reg(_p1 + i) + _incr;
         _next = bs::if_zero_else(bs::is_nan(_next),_next);
         auto _prev = reg(_p0 + i);
@@ -56,8 +56,8 @@ void ReSpectrum::unwrapFrom(const ReSpectrum &o)
         bs::store(bs::if_zero_else(bs::is_nan(_gen),_gen),_p0 + i);
     }
     for(; i < m_coef; ++i) {
-        auto _unit = _twice_unit * i;
-        auto _incr = (_unit - *(_dp0 + i) - *(_dp1 + i)) * _half_hop;
+        auto _unit = _base_unit * i;
+        auto _incr = (_unit + (*(_dp0 + i) + *(_dp1 + i)) * 0.5f) * _base_hop;
         auto _next = *(_p1 + i) + _incr;
         _next = bs::if_zero_else(bs::is_nan(_next),_next);
         auto _prev = *(_p0 + i);
