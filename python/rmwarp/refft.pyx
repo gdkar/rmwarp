@@ -1,3 +1,5 @@
+# cython: np_pythran=False
+
 #from _refft cimport ReFFT
 #from _respectrum cimport ReSpectrum
 from .respectrum cimport ReSpec
@@ -9,22 +11,22 @@ import  numpy as np
 
 ctypedef float * floatp
 cdef class ReFFT:
-    def __init__(self,int size = 2048, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        size = kwargs.pop('size',0)
         alpha = kwargs.pop('alpha',None)
         if alpha is None:
             beta  = kwargs.pop('beta',None )
             if beta is not None:
                 alpha = beta / np.pi
-        if alpha is not None:
+        if alpha is not None and size:
             self.m_d = _ReFFT.Kaiser(size,alpha)
-            self.set_window(self.h)
+            self.set_window(self.h[::])
             return
         win = kwargs.pop('win',None)
-        if win is not None:
-            if size == 0:
-                size = len(win)
+        if win is not None and not size:
+            size = len(win)
         if size > 0:
-            self.m_d = _ReFFT(size)
+            self.m_d = _ReFFT(<int32_t>(size))
         if win is not None:
             self.set_window(win)
 
@@ -33,7 +35,8 @@ cdef class ReFFT:
 
     def set_window(self, win):
 #        cdef float[:] tmp = win[:]
-        self.m_d = _ReFFT(<int32_t>(len(win)))
+        if not self.m_d.size():
+            self.m_d = _ReFFT(<int32_t>(len(win)))
         cdef float[:] tmp = np.asarray(win,dtype=np.float32)
         self.m_d.setWindow(&tmp[0],&tmp[0] + len(tmp))
 

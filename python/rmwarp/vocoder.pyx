@@ -1,3 +1,5 @@
+# cython: np_pythran=False
+
 from libcpp cimport vector, map as std_map, unordered_map, deque
 from libcpp.string cimport string  as std_string
 

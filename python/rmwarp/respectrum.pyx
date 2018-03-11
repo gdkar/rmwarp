@@ -1,3 +1,5 @@
+# cython: np_pythran=False
+
 from libcpp.vector cimport vector
 from ._respectrum cimport ReSpectrum
 from libc.stdint cimport int64_t
