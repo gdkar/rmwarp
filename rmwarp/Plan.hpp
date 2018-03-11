@@ -3,7 +3,6 @@
 #include <fftw3.h>
 #include "Math.hpp"
 #include "Simd.hpp"
-#include "VectorOpsComplex.hpp"
 #include "TimeAlias.hpp"
 #include "ReSpectrum.hpp"
 #include "KaiserWindow.hpp"

@@ -3,7 +3,6 @@
 #include "rmwarp/Plan.hpp"
 #include "rmwarp/sysutils.hpp"
 #include "rmwarp/Simd.hpp"
-#include "rmwarp/VectorOpsComplex.hpp"
 #include "rmwarp/TimeWeightedWindow.hpp"
 #include "rmwarp/TimeDerivativeWindow.hpp"
 #include "rmwarp/TimeAlias.hpp"
@@ -112,6 +111,26 @@ struct ReFFT {
         auto _spacing = spacing();
         auto _coef    = m_coef;
         auto norm = 0.5f * bs::rec(float(size()));
+
+        constexpr auto w = int(simd_width<float>);
+        {
+            auto i =0;
+            const auto _split_r = &m_split[0];
+            const auto _split_i = _split_r + m_spacing;
+
+            for(; i < _coef; i += w) {
+                auto _mag = norm * bs::exp(reg(_M + i));
+                auto _i_r = bs::sincos(reg(_Phi + i));
+                bs::store(std::get<0>(_i_r) * _mag, _split_i + i);
+                bs::store(std::get<1>(_i_r) * _mag, _split_r + i);
+            }
+            for(; i < _coef; i += 1) {
+                auto _mag = norm * bs::exp(*(_M + i));
+                auto _i_r = bs::sincos(*(_Phi + i));
+                bs::store(std::get<0>(_i_r) * _mag, _split_i + i);
+                bs::store(std::get<1>(_i_r) * _mag, _split_r + i);
+            }
+        }
         bs::transform(
             _M
            ,_M + _coef
@@ -119,17 +138,6 @@ struct ReFFT {
            , [norm](auto x){
                 return norm * bs::exp(x);
             });
-        std::copy(
-            _Phi
-           ,_Phi+ _coef
-           , &m_X[0] + _spacing
-            );
-        v_polar_to_cartesian(
-              &m_split[0]
-            , &m_split[0] + _spacing
-            , &m_X[0]
-            , &m_X[0] + _spacing
-            , _coef);
         m_plan_c2r.execute(&m_split[0], &m_flat[0]);
         std::rotate_copy(
             m_flat.cbegin()
